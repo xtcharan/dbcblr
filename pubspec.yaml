@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  fluttertoast: ^9.0.0
+  shimmer: ^3.0.0
+  transparent_image: ^2.0.1
 
 dev_dependencies:
   flutter_test:

@@ -15,7 +15,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _current = 0; // start on Home
 
-  final _pages = const [
+  final _pages = [
     HomePage(), // 0
     EventsPage(), // 1
     ClubsPage(), // 2

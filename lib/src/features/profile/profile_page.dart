@@ -1,83 +1,51 @@
-// Backend endpoints we will build:
-// GET /me               → returns User JSON
-// POST /logout          → clears cookie/token
-
 import 'package:flutter/material.dart';
-import '../../shared/models/user.dart';
+import 'package:swo/src/features/profile/sections/academic_section.dart';
+import 'package:swo/src/features/profile/sections/achievements_section.dart';
+import 'package:swo/src/features/profile/sections/house_stats_section.dart';
+import 'package:swo/src/features/profile/sections/my_events_section.dart';
+import 'package:swo/src/features/profile/sections/notif_settings_section.dart';
+import 'package:swo/src/features/profile/sections/personal_section.dart';
+import 'package:swo/src/features/profile/sections/security_section.dart';
+import 'sections/header_section.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
   Widget build(BuildContext context) {
-    final user = User.fake(); // will be fetched later
-
-    final houseColour = _houseColor(user.houseId);
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // avatar + name
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(user.avatarUrl),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '${user.firstName} ${user.lastName}',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 4),
-            Text(user.email, style: Theme.of(context).textTheme.bodyMedium),
+      backgroundColor: Colors.grey[50],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // TODO: call backend reload later
+          final messenger = ScaffoldMessenger.of(context);
+          await Future.delayed(const Duration(seconds: 1)); // fake delay
+          if (!mounted) return;
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Profile refreshed')),
+          );
+        },
+        child: ListView(
+          children: const [
+            ProfileHeaderSection(),
+            PersonalSection(),
+            AcademicSection(),
+            AchievementsSection(), // Add the achievements section
+            HouseStatsSection(),
+            MyEventsSection(),
+            NotifSettingsSection(),
+            SecuritySection(),
 
-            const SizedBox(height: 24),
-
-            // house badge
-            ListTile(
-              leading: Icon(Icons.groups, color: houseColour),
-              title: const Text('House'),
-              subtitle: Text(user.houseId.toUpperCase()),
-              trailing: Chip(
-                backgroundColor: houseColour,
-                label: Text('1 250 pts', style: TextStyle(color: Colors.white)),
-              ),
-            ),
-
-            const Spacer(),
-
-            // logout button (does nothing yet)
-            FilledButton.tonalIcon(
-              onPressed: () => _logout(context),
-              icon: const Icon(Icons.logout),
-              label: const Text('Logout'),
-            ),
+            // green banner
+            // rest of sections will be added below this
           ],
         ),
       ),
     );
-  }
-
-  Color _houseColor(String id) {
-    switch (id) {
-      case 'ruby':
-        return Colors.red;
-      case 'sapphire':
-        return Colors.blue;
-      case 'topaz':
-        return Colors.amber;
-      case 'emerald':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  void _logout(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Logout not wired yet')));
   }
 }
