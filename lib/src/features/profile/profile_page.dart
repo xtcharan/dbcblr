@@ -20,6 +20,14 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
+        title: const Text('Profile'),
+        elevation: 0,
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           // TODO: call backend reload later

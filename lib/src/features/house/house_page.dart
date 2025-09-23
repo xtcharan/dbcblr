@@ -28,7 +28,14 @@ class _HousePageState extends State<HousePage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(title: const Text('House Standings'), elevation: 0),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
+        title: const Text('House Standings'),
+        elevation: 0,
+      ),
       body: ListView(
         children: [
           // House standings section

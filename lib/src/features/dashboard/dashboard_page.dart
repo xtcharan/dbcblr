@@ -4,6 +4,7 @@ import '../events/events_page.dart';
 import '../clubs/clubs_page.dart';
 import '../house/house_page.dart';
 import '../profile/profile_page.dart';
+import '../../features/core/app_drawer.dart'; // NEW
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -13,7 +14,18 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  int _current = 0; // start on Home
+  int _current = 0; // which tab active
+
+  void _onDrawerTap(int index) {
+    if (index <= 4) {
+      // bottom-nav indices
+      setState(() => _current = index);
+    } else if (index == 5) {
+      // Settings deep-link
+      setState(() => _current = 4); // open Profile tab
+      // TODO: scroll to settings section
+    }
+  }
 
   final _pages = [
     HomePage(), // 0
@@ -26,6 +38,9 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // NEW: drawer
+      drawer: AppDrawer(currentIndex: _current, onItemTap: _onDrawerTap),
+      // existing bottom nav stays
       body: _pages[_current],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _current,

@@ -11,7 +11,14 @@ class EventsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50], // soft grey backdrop
-      appBar: AppBar(title: const Text('College Events'), elevation: 0),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
+        title: const Text('College Events'),
+        elevation: 0,
+      ),
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         itemCount: _fakeEvents.length,
