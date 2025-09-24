@@ -13,15 +13,21 @@ class MyEventsSection extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'My Events',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black
+                      : Colors.white,
+                ),
               ),
               const Spacer(),
               TextButton(
@@ -32,25 +38,29 @@ class MyEventsSection extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           // only first 3 (keep profile short)
-          ...history.take(3).map((e) => _eventRow(e)),
+          ...history.take(3).map((e) => _eventRow(e, context)),
         ],
       ),
     );
   }
 
-  BoxDecoration _cardDecoration() => BoxDecoration(
-    color: Colors.white,
+  BoxDecoration _cardDecoration(BuildContext context) => BoxDecoration(
+    color: Theme.of(context).brightness == Brightness.light
+        ? Colors.white
+        : const Color(0xFF242424),
     borderRadius: BorderRadius.circular(12),
     boxShadow: [
       BoxShadow(
-        color: Colors.grey.withValues(alpha: 0.08),
+        color: Theme.of(context).brightness == Brightness.light
+            ? Colors.grey.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.2),
         blurRadius: 6,
         offset: const Offset(0, 2),
       ),
     ],
   );
 
-  Widget _eventRow(MyEvent event) {
+  Widget _eventRow(MyEvent event, BuildContext context) {
     final categoryColor = _categoryColor(event.category);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -76,9 +86,12 @@ class MyEventsSection extends StatelessWidget {
               children: [
                 Text(
                   event.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? Colors.black87
+                        : Colors.white,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -132,12 +145,19 @@ class MyEventsSection extends StatelessWidget {
                     Icon(
                       Icons.event_available,
                       size: 14,
-                      color: Colors.grey[600],
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.black54
+                          : Colors.grey[300],
                     ),
                     const SizedBox(width: 4),
                     Text(
                       _date(event.completedAt),
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.black54
+                            : Colors.grey[300],
+                      ),
                     ),
                     const Spacer(),
                     Text(

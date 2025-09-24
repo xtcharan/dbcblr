@@ -11,15 +11,21 @@ class AchievementsSection extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Achievements',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black
+                      : Colors.white,
+                ),
               ),
               const Spacer(),
               TextButton(
@@ -42,7 +48,7 @@ class AchievementsSection extends StatelessWidget {
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
               childAspectRatio: 0.9,
-              children: badges.take(6).map((b) => _badgeCard(b)).toList(),
+              children: badges.take(6).map((b) => _badgeCard(b, context)).toList(),
             ),
           ),
         ],
@@ -50,19 +56,23 @@ class AchievementsSection extends StatelessWidget {
     );
   }
 
-  BoxDecoration _cardDecoration() => BoxDecoration(
-    color: Colors.white,
+  BoxDecoration _cardDecoration(BuildContext context) => BoxDecoration(
+    color: Theme.of(context).brightness == Brightness.light
+        ? Colors.white
+        : const Color(0xFF242424),
     borderRadius: BorderRadius.circular(12),
     boxShadow: [
       BoxShadow(
-        color: Colors.grey.withValues(alpha: 0.08),
+        color: Theme.of(context).brightness == Brightness.light
+            ? Colors.grey.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.2),
         blurRadius: 6,
         offset: const Offset(0, 2),
       ),
     ],
   );
 
-  Widget _badgeCard(models.Badge badge) {
+  Widget _badgeCard(models.Badge badge, BuildContext context) {
     final color = _tierColor(badge.tier);
     final locked = badge.earnedOn == null;
     return Column(
@@ -93,7 +103,13 @@ class AchievementsSection extends StatelessWidget {
           badge.title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).brightness == Brightness.light
+                ? Colors.black
+                : Colors.white,
+          ),
         ),
         // date or lock
         Text(

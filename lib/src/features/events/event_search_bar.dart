@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'filter_modal.dart';
 
 class EventSearchBar extends StatelessWidget {
@@ -17,75 +18,86 @@ class EventSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          const SizedBox(width: 12),
-          Icon(Icons.search, color: Colors.grey[600]),
-          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                hintText: "Search events...",
-                border: InputBorder.none,
-                hintStyle: TextStyle(color: Colors.grey),
-                contentPadding: EdgeInsets.symmetric(vertical: 15),
+              decoration: InputDecoration(
+                hintText: 'Search events...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.grey[100],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               onChanged: onSearch,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  onSearch(value);
+                }
+              },
             ),
           ),
+          const SizedBox(width: 12),
           _buildFilterButton(context),
         ],
       ),
     );
   }
 
+
   Widget _buildFilterButton(BuildContext context) {
     final hasActiveFilters = filterState.activeCount > 0;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () => _showFilterModal(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        height: 48,
-        child: Stack(
-          alignment: Alignment.center,
+    return Container(
+      decoration: BoxDecoration(
+        color: hasActiveFilters ? Colors.blue[50] : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: hasActiveFilters
+            ? Border.all(color: Colors.blue.shade300, width: 1)
+            : null,
+      ),
+      child: IconButton(
+        onPressed: () => _showFilterModal(context),
+        icon: Stack(
+          clipBehavior: Clip.none,
           children: [
             Icon(
-              Icons.filter_list,
-              color: hasActiveFilters ? Colors.blueGrey[700] : Colors.grey[600],
+              Icons.tune,
+              color: hasActiveFilters ? Colors.blue : Colors.grey[600],
             ),
             if (hasActiveFilters)
               Positioned(
-                right: 0,
-                top: 6,
+                right: -2,
+                top: -2,
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.blueGrey[700],
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
                     shape: BoxShape.circle,
                   ),
                   constraints: const BoxConstraints(
-                    minWidth: 18,
-                    minHeight: 18,
+                    minWidth: 16,
+                    minHeight: 16,
                   ),
-                  child: Center(
-                    child: Text(
-                      "${filterState.activeCount}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  child: Text(
+                    '${filterState.activeCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -109,7 +121,10 @@ class EventSearchBar extends StatelessWidget {
         minChildSize: 0.5,
         expand: false,
         builder: (context, scrollController) {
-          return FilterModal(current: filterState, onApply: onFilterApplied);
+          return FilterModal(
+            current: filterState,
+            onApply: onFilterApplied,
+          );
         },
       ),
     );

@@ -10,10 +10,40 @@ class EventsPage extends StatefulWidget {
   State<EventsPage> createState() => _EventsPageState();
 }
 
-class _EventsPageState extends State<EventsPage> {
+class _EventsPageState extends State<EventsPage>
+    with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
   String _searchQuery = "";
   FilterState _filterState = FilterState.empty();
+  late TabController _tabController;
+
+  // Calendar state
+  DateTime _selectedMonth = DateTime.now();
+  DateTime? _selectedDate;
+
+  final List<String> _weekDays = [
+    'Sun',
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+  ];
+  final List<String> _months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
 
   // Sample events data
   final List<Event> _events = [
@@ -149,6 +179,12 @@ class _EventsPageState extends State<EventsPage> {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
   List<Event> get _filteredEvents {
     // Start with search query filter
     List<Event> filtered = _events.where((event) {
@@ -210,12 +246,36 @@ class _EventsPageState extends State<EventsPage> {
     return filtered;
   }
 
+  List<Event> get _upcomingEvents {
+    final now = DateTime.now();
+    return _filteredEvents
+        .where((event) => event.startDate.isAfter(now))
+        .toList()
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
+  }
+
+  List<Event> get _pastEvents {
+    final now = DateTime.now();
+    return _filteredEvents
+        .where((event) => event.startDate.isBefore(now))
+        .toList()
+      ..sort((a, b) => b.startDate.compareTo(a.startDate)); // Most recent first
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Events"), elevation: 0),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
+        title: const Text("Events"),
+        elevation: 0,
+      ),
       body: Column(
         children: [
+          // Search Bar
           EventSearchBar(
             controller: _searchController,
             onSearch: (query) => setState(() => _searchQuery = query),
@@ -223,27 +283,287 @@ class _EventsPageState extends State<EventsPage> {
             onFilterApplied: (newState) =>
                 setState(() => _filterState = newState),
           ),
-          Expanded(child: _buildEventsList()),
+
+          // Compact Calendar Section
+          _buildCompactCalendar(),
+
+          // Tab Bar (Upcoming | Past)
+          Container(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).colorScheme.primary,
+              unselectedLabelColor:
+                  Theme.of(context).brightness == Brightness.light
+                  ? Colors.black54
+                  : Colors.grey[400],
+              indicatorColor: Theme.of(context).colorScheme.primary,
+              tabs: const [
+                Tab(text: 'Upcoming'),
+                Tab(text: 'Past Events'),
+              ],
+            ),
+          ),
+
+          // Events List with TabBarView
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildEventsTab(_upcomingEvents, 'No upcoming events'),
+                _buildEventsTab(_pastEvents, 'No past events'),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildEventsList() {
-    final events = _filteredEvents;
+  Widget _buildCompactCalendar() {
+    return Column(
+      children: [
+        // Month header with navigation (no background)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.chevron_left,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedMonth = DateTime(
+                      _selectedMonth.year,
+                      _selectedMonth.month - 1,
+                    );
+                  });
+                },
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _showFullCalendar(),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _months[_selectedMonth.month - 1],
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.calendar_month,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedMonth = DateTime(
+                      _selectedMonth.year,
+                      _selectedMonth.month + 1,
+                    );
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
 
+        // Scrollable date squares
+        SizedBox(
+          height: 80,
+          child: PageView.builder(
+            controller: PageController(),
+            itemBuilder: (context, pageIndex) {
+              // Each page shows 5 consecutive dates
+              final startDate = DateTime(
+                _selectedMonth.year,
+                _selectedMonth.month,
+                1 + (pageIndex * 5),
+              );
+              final dates = List.generate(5, (index) {
+                final date = DateTime(
+                  startDate.year,
+                  startDate.month,
+                  startDate.day + index,
+                );
+                // Only show dates that exist in the month
+                final lastDayOfMonth = DateTime(
+                  _selectedMonth.year,
+                  _selectedMonth.month + 1,
+                  0,
+                ).day;
+                if (date.day <= lastDayOfMonth &&
+                    date.month == _selectedMonth.month) {
+                  return date;
+                }
+                return null;
+              }).where((date) => date != null).cast<DateTime>().toList();
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: dates
+                      .map((date) => _buildDateSquare(date))
+                      .toList(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateSquare(DateTime date) {
+    final isSelected =
+        _selectedDate != null &&
+        _selectedDate!.day == date.day &&
+        _selectedDate!.month == date.month &&
+        _selectedDate!.year == date.year;
+    final isToday =
+        date.day == DateTime.now().day &&
+        date.month == DateTime.now().month &&
+        date.year == DateTime.now().year;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedDate = isSelected ? null : date;
+        });
+      },
+      child: Container(
+        width: 55,
+        height: 70,
+        margin: const EdgeInsets.symmetric(
+          horizontal: 4,
+        ), // Add spacing between squares
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : isToday
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+              : Theme.of(context).brightness == Brightness.light
+              ? Colors.white
+              : const Color(0xFF242424),
+          borderRadius: BorderRadius.circular(12),
+          border: isToday && !isSelected
+              ? Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                )
+              : Border.all(
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey.withValues(alpha: 0.3)
+                      : Colors.grey.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.grey.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.2),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '${date.day}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? Colors.white
+                    : isToday
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).brightness == Brightness.light
+                    ? Colors.black
+                    : Colors.white,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _weekDays[date.weekday % 7],
+              style: TextStyle(
+                fontSize: 11,
+                color: isSelected
+                    ? Colors.white
+                    : Theme.of(context).brightness == Brightness.light
+                    ? Colors.black54
+                    : Colors.grey[300],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFullCalendar() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _FullCalendarModal(
+        selectedMonth: _selectedMonth,
+        selectedDate: _selectedDate,
+        onDateSelected: (date) {
+          setState(() {
+            _selectedDate = date;
+            _selectedMonth = DateTime(date.year, date.month);
+          });
+          Navigator.pop(context);
+        },
+        onMonthChanged: (month) {
+          // Update month in modal - handled within the modal
+        },
+      ),
+    );
+  }
+
+  Widget _buildEventsTab(List<Event> events, String emptyMessage) {
     if (events.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 70, color: Colors.grey[400]),
+            Icon(
+              Icons.event_busy,
+              size: 70,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.grey[400]
+                  : Colors.grey[600],
+            ),
             const SizedBox(height: 16),
             Text(
-              "No events match your filters",
+              emptyMessage,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey[700],
+                color: Theme.of(context).brightness == Brightness.light
+                    ? Colors.grey[700]
+                    : Colors.grey[300],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -251,9 +571,6 @@ class _EventsPageState extends State<EventsPage> {
             TextButton(
               onPressed: () =>
                   setState(() => _filterState = FilterState.empty()),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blueGrey[700],
-              ),
               child: const Text("Clear filters"),
             ),
           ],
@@ -457,15 +774,23 @@ class _EventsPageState extends State<EventsPage> {
                   if (event.eventImage == null) const SizedBox(height: 12),
                   Text(
                     event.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.black
+                          : Colors.white,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     event.description,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.grey[700]
+                          : Colors.grey[300],
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -475,12 +800,20 @@ class _EventsPageState extends State<EventsPage> {
                       Icon(
                         Icons.location_on,
                         size: 16,
-                        color: Colors.grey[700],
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.grey[700]
+                            : Colors.grey[300],
                       ),
                       const SizedBox(width: 4),
                       Text(
                         event.location,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                              ? Colors.grey[700]
+                              : Colors.grey[300],
+                        ),
                       ),
                     ],
                   ),
@@ -490,12 +823,20 @@ class _EventsPageState extends State<EventsPage> {
                       Icon(
                         Icons.calendar_today,
                         size: 16,
-                        color: Colors.grey[700],
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.grey[700]
+                            : Colors.grey[300],
                       ),
                       const SizedBox(width: 4),
                       Text(
                         _formatDate(event.startDate),
-                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                              ? Colors.grey[700]
+                              : Colors.grey[300],
+                        ),
                       ),
                     ],
                   ),
@@ -505,7 +846,13 @@ class _EventsPageState extends State<EventsPage> {
                       padding: const EdgeInsets.only(left: 20, top: 4),
                       child: Text(
                         "to ${_formatDate(event.endDate)}",
-                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                              ? Colors.grey[700]
+                              : Colors.grey[300],
+                        ),
                       ),
                     ),
                 ],
@@ -547,6 +894,288 @@ class _EventsPageState extends State<EventsPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
+  }
+}
+
+class _FullCalendarModal extends StatefulWidget {
+  final DateTime selectedMonth;
+  final DateTime? selectedDate;
+  final Function(DateTime) onDateSelected;
+  final Function(DateTime) onMonthChanged;
+
+  const _FullCalendarModal({
+    required this.selectedMonth,
+    required this.selectedDate,
+    required this.onDateSelected,
+    required this.onMonthChanged,
+  });
+
+  @override
+  State<_FullCalendarModal> createState() => _FullCalendarModalState();
+}
+
+class _FullCalendarModalState extends State<_FullCalendarModal> {
+  late DateTime _currentMonth;
+  final List<String> _months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  final List<String> _weekDays = [
+    'Sun',
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentMonth = widget.selectedMonth;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.75,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // Handle bar
+          Container(
+            width: 50,
+            height: 5,
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2.5),
+            ),
+          ),
+
+          // Header with month navigation
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.chevron_left,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _currentMonth = DateTime(
+                        _currentMonth.year,
+                        _currentMonth.month - 1,
+                      );
+                    });
+                  },
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      '${_months[_currentMonth.month - 1]} ${_currentMonth.year}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.black
+                            : Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.chevron_right,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _currentMonth = DateTime(
+                        _currentMonth.year,
+                        _currentMonth.month + 1,
+                      );
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Week day headers
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: _weekDays
+                  .map(
+                    (day) => Expanded(
+                      child: Center(
+                        child: Text(
+                          day,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                ? Colors.black54
+                                : Colors.grey[400],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Calendar grid
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildCalendarGrid(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalendarGrid() {
+    final firstDayOfMonth = DateTime(
+      _currentMonth.year,
+      _currentMonth.month,
+      1,
+    );
+    final lastDayOfMonth = DateTime(
+      _currentMonth.year,
+      _currentMonth.month + 1,
+      0,
+    );
+    final firstDayWeekday =
+        firstDayOfMonth.weekday % 7; // Convert to 0-6 where Sunday = 0
+    final daysInMonth = lastDayOfMonth.day;
+
+    // Calculate previous month days to show
+    final prevMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
+    final lastDayOfPrevMonth = DateTime(
+      _currentMonth.year,
+      _currentMonth.month,
+      0,
+    ).day;
+
+    List<Widget> dayWidgets = [];
+
+    // Add previous month's trailing days
+    for (int i = firstDayWeekday - 1; i >= 0; i--) {
+      final day = lastDayOfPrevMonth - i;
+      dayWidgets.add(
+        _buildDayWidget(
+          DateTime(prevMonth.year, prevMonth.month, day),
+          isCurrentMonth: false,
+        ),
+      );
+    }
+
+    // Add current month days
+    for (int day = 1; day <= daysInMonth; day++) {
+      dayWidgets.add(
+        _buildDayWidget(
+          DateTime(_currentMonth.year, _currentMonth.month, day),
+          isCurrentMonth: true,
+        ),
+      );
+    }
+
+    // Add next month's leading days to complete the grid
+    final nextMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
+    int remainingDays = 42 - dayWidgets.length; // 6 rows * 7 days = 42
+    for (int day = 1; day <= remainingDays && dayWidgets.length < 42; day++) {
+      dayWidgets.add(
+        _buildDayWidget(
+          DateTime(nextMonth.year, nextMonth.month, day),
+          isCurrentMonth: false,
+        ),
+      );
+    }
+
+    return GridView.count(
+      crossAxisCount: 7,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: dayWidgets,
+    );
+  }
+
+  Widget _buildDayWidget(DateTime date, {required bool isCurrentMonth}) {
+    final isSelected =
+        widget.selectedDate != null &&
+        widget.selectedDate!.day == date.day &&
+        widget.selectedDate!.month == date.month &&
+        widget.selectedDate!.year == date.year;
+    final isToday =
+        date.day == DateTime.now().day &&
+        date.month == DateTime.now().month &&
+        date.year == DateTime.now().year;
+
+    return GestureDetector(
+      onTap: () => widget.onDateSelected(date),
+      child: Container(
+        margin: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : isToday
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: isToday && !isSelected
+              ? Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 1,
+                )
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            '${date.day}',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+              color: isSelected
+                  ? Colors.white
+                  : !isCurrentMonth
+                  ? (Theme.of(context).brightness == Brightness.light
+                        ? Colors.grey[400]
+                        : Colors.grey[600])
+                  : isToday
+                  ? Theme.of(context).colorScheme.primary
+                  : (Theme.of(context).brightness == Brightness.light
+                        ? Colors.black
+                        : Colors.white),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

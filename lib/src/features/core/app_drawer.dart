@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../shared/models/user.dart'; // for avatar + name
 import '../../shared/utils/toast.dart'; // for toast notifications
+import '../../core/theme_provider.dart'; // for theme switching
+import '../profile/profile_page.dart'; // for direct profile navigation
 
 class AppDrawer extends StatelessWidget {
   final int currentIndex; // which tab is active
@@ -23,82 +26,280 @@ class AppDrawer extends StatelessWidget {
         onItemTap(index); // switch tab
       },
       children: [
-        // header
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundImage: NetworkImage(user.avatarUrl),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${user.firstName} ${user.lastName}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+        // header - clickable profile section
+        InkWell(
+          onTap: () {
+            Navigator.pop(context); // close drawer
+            // Navigate directly to ProfilePage like in HomePage
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const ProfilePage()),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          splashColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context); // close drawer
+                    // Navigate directly to ProfilePage like in HomePage
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const ProfilePage()),
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundImage: NetworkImage(user.avatarUrl),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context); // close drawer
+                      // Navigate directly to ProfilePage like in HomePage
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const ProfilePage()),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${user.firstName} ${user.lastName}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).brightness == Brightness.light 
+                                ? Colors.black 
+                                : Colors.white,
+                          ),
+                        ),
+                        Text(
+                          user.houseId.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).brightness == Brightness.light 
+                                ? Colors.black54 
+                                : Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    user.houseId.toUpperCase(),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                ],
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward_ios, size: 16),
-                onPressed: () => onItemTap(5),
-              ), // jump to Profile
-            ],
+                  onPressed: () {
+                    Navigator.pop(context); // close drawer
+                    // Navigate directly to ProfilePage like in HomePage
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const ProfilePage()),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
         const Divider(),
 
         // destinations (same order as bottom nav)
         NavigationDrawerDestination(
-          icon: const Icon(Icons.home),
-          label: const Text('Home'),
+          icon: Icon(
+            Icons.home,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
+          ),
+          label: Text(
+            'Home',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
         ),
         NavigationDrawerDestination(
-          icon: const Icon(Icons.event),
-          label: const Text('Events'),
+          icon: Icon(
+            Icons.event,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
+          ),
+          label: Text(
+            'Events',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
         ),
         NavigationDrawerDestination(
-          icon: const Icon(Icons.group_work),
-          label: const Text('Clubs'),
+          icon: Icon(
+            Icons.group_work,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
+          ),
+          label: Text(
+            'Clubs',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
         ),
         NavigationDrawerDestination(
-          icon: const Icon(Icons.groups),
-          label: const Text('House'),
+          icon: Icon(
+            Icons.groups,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
+          ),
+          label: Text(
+            'House',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
         ),
         NavigationDrawerDestination(
-          icon: const Icon(Icons.sports),
-          label: const Text('Sports'),
+          icon: Icon(
+            Icons.sports,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
+          ),
+          label: Text(
+            'Sports',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
         ),
         NavigationDrawerDestination(
-          icon: const Icon(Icons.person),
-          label: const Text('Profile'),
+          icon: Icon(
+            Icons.person,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
+          ),
+          label: Text(
+            'Profile',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
         ),
         NavigationDrawerDestination(
-          icon: const Icon(Icons.settings),
-          label: const Text('Settings'),
+          icon: Icon(
+            Icons.settings,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.white70,
+          ),
+          label: Text(
+            'Settings',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
+        ),
+        const Divider(),
+
+        // theme toggle
+        Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return ListTile(
+              leading: Icon(
+                themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: Text(
+                themeProvider.isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.light 
+                      ? Colors.black 
+                      : Colors.white,
+                ),
+              ),
+              trailing: Switch(
+                value: themeProvider.isDarkMode,
+                onChanged: (value) {
+                  themeProvider.toggleTheme();
+                  Navigator.pop(context); // close drawer after toggle
+                  showToast(
+                    themeProvider.isDarkMode ? 'Switched to Dark Mode' : 'Switched to Light Mode',
+                    context: context,
+                  );
+                },
+                activeThumbColor: Theme.of(context).colorScheme.primary,
+              ),
+              onTap: () {
+                themeProvider.toggleTheme();
+                Navigator.pop(context); // close drawer after toggle
+                showToast(
+                  themeProvider.isDarkMode ? 'Switched to Light Mode' : 'Switched to Dark Mode',
+                  context: context,
+                );
+              },
+            );
+          },
         ),
         const Divider(),
 
         // non-destinations (no highlight)
         ListTile(
-          leading: const Icon(Icons.help_outline, color: Colors.grey),
-          title: const Text('Help & Support'),
+          leading: Icon(
+            Icons.help_outline,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.grey,
+          ),
+          title: Text(
+            'Help & Support',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
           onTap: () => _snack(context, 'Help center'),
         ),
         ListTile(
-          leading: const Icon(Icons.share, color: Colors.grey),
-          title: const Text('Share App'),
+          leading: Icon(
+            Icons.share,
+            color: Theme.of(context).brightness == Brightness.light 
+                ? Colors.black54 
+                : Colors.grey,
+          ),
+          title: Text(
+            'Share App',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.light 
+                  ? Colors.black 
+                  : Colors.white,
+            ),
+          ),
           onTap: () => _snack(context, 'Share sheet'),
         ),
         const Divider(),

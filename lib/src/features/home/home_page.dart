@@ -4,6 +4,7 @@ import '../../shared/models/event.dart';
 import '../../shared/widgets/event_card.dart';
 import '../../shared/widgets/category_chip.dart';
 import '../../shared/services/events_provider.dart';
+import '../profile/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -69,11 +70,19 @@ class _HomePageState extends State<HomePage> {
                         fontSize: textScaler.scale(14),
                       ),
                     ),
-                    CircleAvatar(
-                      radius:
-                          MediaQuery.of(context).size.height *
-                          0.02, // Responsive radius based on screen height
-                      backgroundImage: NetworkImage(currentUser.avatarUrl),
+                    GestureDetector(
+                      onTap: () {
+                        // Navigate directly to profile page
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => const ProfilePage()),
+                        );
+                      },
+                      child: CircleAvatar(
+                        radius:
+                            MediaQuery.of(context).size.height *
+                            0.02, // Responsive radius based on screen height
+                        backgroundImage: NetworkImage(currentUser.avatarUrl),
+                      ),
                     ),
                   ],
                 ),
@@ -98,11 +107,21 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Hello ${currentUser.firstName}',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: textScaler.scale(14),
+                        GestureDetector(
+                          onTap: () {
+                            // Navigate directly to profile page
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const ProfilePage()),
+                            );
+                          },
+                          child: Text(
+                            'Hello ${currentUser.firstName}',
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: textScaler.scale(14),
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.grey[400],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),

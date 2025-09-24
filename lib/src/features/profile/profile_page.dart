@@ -19,14 +19,12 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
         title: const Text('Profile'),
         elevation: 0,
+        // Let Flutter automatically show back button when navigated from other pages
+        // The hamburger menu will only show when accessed through the main dashboard
       ),
       body: RefreshIndicator(
         onRefresh: () async {
