@@ -52,7 +52,7 @@ class AppDrawer extends StatelessWidget {
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.arrow_forward_ios, size: 16),
-                onPressed: () => onItemTap(4),
+                onPressed: () => onItemTap(5),
               ), // jump to Profile
             ],
           ),
@@ -77,8 +77,12 @@ class AppDrawer extends StatelessWidget {
           label: const Text('House'),
         ),
         NavigationDrawerDestination(
-          icon: const Icon(Icons.emoji_events),
-          label: const Text('Achievements'),
+          icon: const Icon(Icons.sports),
+          label: const Text('Sports'),
+        ),
+        NavigationDrawerDestination(
+          icon: const Icon(Icons.person),
+          label: const Text('Profile'),
         ),
         NavigationDrawerDestination(
           icon: const Icon(Icons.settings),

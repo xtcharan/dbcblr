@@ -4,6 +4,7 @@ import '../events/events_page.dart';
 import '../clubs/clubs_page.dart';
 import '../house/house_page.dart';
 import '../profile/profile_page.dart';
+import '../sports/sports_page.dart';
 import '../../features/core/app_drawer.dart'; // NEW
 
 class DashboardPage extends StatefulWidget {
@@ -21,8 +22,11 @@ class _DashboardPageState extends State<DashboardPage> {
       // bottom-nav indices
       setState(() => _current = index);
     } else if (index == 5) {
+      // Profile page (not in bottom nav)
+      setState(() => _current = 5);
+    } else if (index == 6) {
       // Settings deep-link
-      setState(() => _current = 4); // open Profile tab
+      setState(() => _current = 5); // open Profile tab
       // TODO: scroll to settings section
     }
   }
@@ -32,7 +36,8 @@ class _DashboardPageState extends State<DashboardPage> {
     EventsPage(), // 1
     ClubsPage(), // 2
     HousePage(), // 3
-    ProfilePage(), // 4
+    SportsPage(), // 4
+    ProfilePage(), // 5 (not in navigation bar, but accessible from drawer)
   ];
 
   @override
@@ -50,7 +55,7 @@ class _DashboardPageState extends State<DashboardPage> {
           NavigationDestination(icon: Icon(Icons.event), label: 'Events'),
           NavigationDestination(icon: Icon(Icons.group_work), label: 'Clubs'),
           NavigationDestination(icon: Icon(Icons.groups), label: 'House'),
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
+          NavigationDestination(icon: Icon(Icons.sports), label: 'Sports'),
         ],
       ),
     );

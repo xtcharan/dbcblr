@@ -18,9 +18,9 @@ class User {
   // fake student
   factory User.fake() => const User(
     id: 'usr_123',
-    firstName: 'Nivedha',
-    lastName: 'Venky',
-    email: 'Nivedha.doe@dbc.edu.in',
+    firstName: 'Joel',
+    lastName: 'Thankan',
+    email: 'Joel.thankan@dbc.edu.in',
     houseId: 'sapphire',
     avatarUrl: 'https://i.pravatar.cc/150?img=3',
   );

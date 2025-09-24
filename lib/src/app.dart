@@ -8,8 +8,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Swo',
+      title: 'DBC SWO',
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.dark, // Force dark theme for Eventonic design
       home: const DashboardPage(),
       debugShowCheckedModeBanner: false,
     );
