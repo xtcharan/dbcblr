@@ -51,7 +51,7 @@ class _DashboardPageState extends State<DashboardPage> {
         selectedIndex: _current,
         onDestinationSelected: (i) => setState(() => _current = i),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.home), label: 'Discover'),
           NavigationDestination(icon: Icon(Icons.event), label: 'Events'),
           NavigationDestination(icon: Icon(Icons.group_work), label: 'Clubs'),
           NavigationDestination(icon: Icon(Icons.groups), label: 'House'),
