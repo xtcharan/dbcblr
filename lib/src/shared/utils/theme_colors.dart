@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ThemeColors {
   // Primary accent color (same in both themes)
-  static const Color primary = Color(0xFFFCB900);
+  static const Color primary = Color(0xFFf8ce82);
   
   // Theme-aware colors
   static Color background(BuildContext context) {

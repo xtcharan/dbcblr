@@ -58,7 +58,7 @@ class _FullCalendarModalState extends State<FullCalendarModal> {
                 IconButton(
                   icon: const Icon(
                     Icons.chevron_left,
-                    color: Color(0xFFFCB900),
+                    color: Color(0xFFf8ce82),
                     size: 28,
                   ),
                   onPressed: () {
@@ -85,7 +85,7 @@ class _FullCalendarModalState extends State<FullCalendarModal> {
                 IconButton(
                   icon: const Icon(
                     Icons.chevron_right,
-                    color: Color(0xFFFCB900),
+                    color: Color(0xFFf8ce82),
                     size: 28,
                   ),
                   onPressed: () {
@@ -142,7 +142,7 @@ class _FullCalendarModalState extends State<FullCalendarModal> {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFCB900),
+                  backgroundColor: const Color(0xFFf8ce82),
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -230,14 +230,14 @@ class _FullCalendarModalState extends State<FullCalendarModal> {
         margin: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFFFCB900)
+              ? const Color(0xFFf8ce82)
               : isToday
-                  ? const Color(0xFFFCB900).withValues(alpha: 0.2)
+                  ? const Color(0xFFf8ce82).withValues(alpha: 0.2)
                   : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: isToday && !isSelected
               ? Border.all(
-                  color: const Color(0xFFFCB900),
+                  color: const Color(0xFFf8ce82),
                   width: 1,
                 )
               : null,
@@ -253,7 +253,7 @@ class _FullCalendarModalState extends State<FullCalendarModal> {
                   : !isCurrentMonth
                       ? Colors.white.withValues(alpha: 0.3)
                       : isToday
-                          ? const Color(0xFFFCB900)
+                          ? const Color(0xFFf8ce82)
                           : Colors.white,
             ),
           ),

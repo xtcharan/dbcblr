@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../shared/models/house.dart';
 import '../../shared/models/activity.dart';
-import 'activity_header.dart';
-import 'activity_card.dart';
+import '../../shared/utils/theme_colors.dart';
+import 'widgets/animated_house_standings_chart.dart';
+import 'widgets/enhanced_house_card.dart';
+import 'widgets/recent_activities_section.dart';
 
 class HousePage extends StatefulWidget {
   const HousePage({super.key});
@@ -12,7 +15,7 @@ class HousePage extends StatefulWidget {
 }
 
 class _HousePageState extends State<HousePage> {
-  String _filter = 'All';
+  final String _filter = 'All';
 
   @override
   Widget build(BuildContext context) {
@@ -27,170 +30,419 @@ class _HousePageState extends State<HousePage> {
               .toList();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
-        title: const Text('House Standings'),
-        elevation: 0,
-      ),
-      body: ListView(
-        children: [
-          // House standings section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'House Standings',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
+      backgroundColor: ThemeColors.background(context),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom Header
+            _buildHeader(context),
+            
+            // Scrollable Content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    
+                    // Animated House Standings Chart
+                    AnimatedHouseStandingsChart(houses: houses),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Enhanced House Cards
+                    ...houses.asMap().entries.map(
+                      (entry) => EnhancedHouseCard(
+                        house: entry.value,
+                        rank: entry.key + 1,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Recent Activities Section
+                    RecentActivitiesSection(
+                      activities: filteredActivities,
+                    ),
+                    
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
-          ),
-          ...houses.asMap().entries.map(
-            (entry) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: HouseCard(house: entry.value, rank: entry.key + 1),
-            ),
-          ),
-
-          // Recent activities section
-          ActivityHeader(
-            filter: _filter,
-            onFilterChanged: (value) => setState(() => _filter = value),
-          ),
-          ...filteredActivities.map(
-            (activity) => ActivityCard(activity: activity),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class HouseCard extends StatelessWidget {
-  final House house;
-  final int rank;
-
-  const HouseCard({super.key, required this.house, required this.rank});
-
-  // helpers ------------------------------------------------------------------
-  Color get _borderColor =>
-      Color(int.parse(house.colorHex.substring(1), radix: 16) + 0xFF000000);
-
-  Color get _statusColor => switch (house.status) {
-    'Rising' => Colors.green,
-    'Falling' => Colors.red,
-    _ => Colors.grey,
-  };
-
-  IconData get _statusIcon => switch (house.status) {
-    'Rising' => Icons.trending_up,
-    'Falling' => Icons.trending_down,
-    _ => Icons.trending_flat,
-  };
-
-  // UI -----------------------------------------------------------------------
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _borderColor, width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: _borderColor.withValues(alpha: 0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // left: rank + mascot
-            _leftBadge(),
-            const SizedBox(width: 20),
-
-            // centre: name + points
-            _centerInfo(),
-            const SizedBox(width: 12),
-
-            // right: trend chip
-            _trendChip(),
           ],
         ),
       ),
     );
   }
+  
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Row(
+        children: [
+          // Hamburger menu
+          GestureDetector(
+            onTap: () => Scaffold.of(context).openDrawer(),
+            child: Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                color: ThemeColors.surface(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: ThemeColors.cardBorder(context),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                Icons.menu,
+                color: ThemeColors.primary,
+                size: 24,
+              ),
+            ),
+          ),
+          
+          const SizedBox(width: 16),
+          
+          // Title section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'House System',
+                  style: GoogleFonts.urbanist(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: ThemeColors.text(context),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Competition standings and activities',
+                  style: GoogleFonts.urbanist(
+                    fontSize: 14,
+                    color: ThemeColors.textSecondary(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(width: 16),
+          
+          // Add Points Button
+          GestureDetector(
+            onTap: () => _showAddPointsDialog(context),
+            child: Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                color: ThemeColors.surface(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: ThemeColors.cardBorder(context),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                Icons.add,
+                color: ThemeColors.primary,
+                size: 24,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _showAddPointsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => _AddPointsDialog(),
+    );
+  }
+}
 
-  Widget _leftBadge() => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      // rank
-      Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(color: _borderColor, shape: BoxShape.circle),
-        child: Center(
-          child: Text(
-            '$rank',
-            style: const TextStyle(
-              color: Colors.white,
+class _AddPointsDialog extends StatefulWidget {
+  @override
+  State<_AddPointsDialog> createState() => _AddPointsDialogState();
+}
+
+class _AddPointsDialogState extends State<_AddPointsDialog> {
+  final _pointsController = TextEditingController();
+  final _reasonController = TextEditingController();
+  String? _selectedHouse;
+  String? _selectedCategory;
+  final _formKey = GlobalKey<FormState>();
+  
+  final List<String> _houses = [
+    'Ruby Rhinos',
+    'Sapphire Sharks', 
+    'Topaz Tigers',
+    'Emerald Eagles',
+  ];
+  
+  final List<String> _categories = [
+    'Sports',
+    'Academic',
+    'Cultural',
+    'Community',
+  ];
+  
+  @override
+  void dispose() {
+    _pointsController.dispose();
+    _reasonController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: ThemeColors.cardBackground(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      title: Row(
+        children: [
+          Icon(
+            Icons.add_circle_outline,
+            color: ThemeColors.primary,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'Add Points',
+            style: GoogleFonts.urbanist(
               fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: ThemeColors.text(context),
+            ),
+          ),
+        ],
+      ),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // House Selection
+            DropdownButtonFormField<String>(
+              value: _selectedHouse,
+              decoration: InputDecoration(
+                labelText: 'Select House',
+                labelStyle: TextStyle(color: ThemeColors.textSecondary(context)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: ThemeColors.cardBorder(context)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: ThemeColors.primary, width: 2),
+                ),
+              ),
+              dropdownColor: ThemeColors.cardBackground(context),
+              style: TextStyle(color: ThemeColors.text(context)),
+              items: _houses.map((house) {
+                return DropdownMenuItem(
+                  value: house,
+                  child: Text(house),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedHouse = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a house';
+                }
+                return null;
+              },
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Category Selection
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: InputDecoration(
+                labelText: 'Select Category',
+                labelStyle: TextStyle(color: ThemeColors.textSecondary(context)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: ThemeColors.cardBorder(context)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: ThemeColors.primary, width: 2),
+                ),
+              ),
+              dropdownColor: ThemeColors.cardBackground(context),
+              style: TextStyle(color: ThemeColors.text(context)),
+              items: _categories.map((category) {
+                return DropdownMenuItem(
+                  value: category,
+                  child: Row(
+                    children: [
+                      Icon(
+                        _getCategoryIcon(category),
+                        color: ThemeColors.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(category),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategory = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a category';
+                }
+                return null;
+              },
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Points Input
+            TextFormField(
+              controller: _pointsController,
+              keyboardType: TextInputType.number,
+              style: TextStyle(color: ThemeColors.text(context)),
+              decoration: InputDecoration(
+                labelText: 'Points to Add',
+                labelStyle: TextStyle(color: ThemeColors.textSecondary(context)),
+                hintText: 'e.g., 50',
+                hintStyle: TextStyle(color: ThemeColors.textSecondary(context)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: ThemeColors.cardBorder(context)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: ThemeColors.primary, width: 2),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter points';
+                }
+                if (int.tryParse(value) == null) {
+                  return 'Please enter a valid number';
+                }
+                if (int.parse(value) <= 0) {
+                  return 'Points must be positive';
+                }
+                return null;
+              },
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Reason Input
+            TextFormField(
+              controller: _reasonController,
+              style: TextStyle(color: ThemeColors.text(context)),
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Reason for Points',
+                labelStyle: TextStyle(color: ThemeColors.textSecondary(context)),
+                hintText: 'e.g., Won inter-house football match',
+                hintStyle: TextStyle(color: ThemeColors.textSecondary(context)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: ThemeColors.cardBorder(context)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: ThemeColors.primary, width: 2),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a reason';
+                }
+                if (value.length < 10) {
+                  return 'Please provide a detailed reason (min 10 characters)';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'Cancel',
+            style: TextStyle(color: ThemeColors.textSecondary(context)),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: _addPoints,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ThemeColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(
+            'Add Points',
+            style: GoogleFonts.urbanist(
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      ),
-      const SizedBox(height: 8),
-      // mascot
-      Text(house.mascot, style: const TextStyle(fontSize: 32)),
-    ],
-  );
-
-  Widget _centerInfo() => Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          house.name,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${house.points}',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: _borderColor,
+      ],
+    );
+  }
+  
+  void _addPoints() {
+    if (_formKey.currentState!.validate()) {
+      final points = int.parse(_pointsController.text);
+      final reason = _reasonController.text;
+      
+      // Here you would typically save this to your database
+      // For now, we'll just show a success message
+      Navigator.of(context).pop();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Added $points points to $_selectedHouse for $_selectedCategory: $reason',
+            style: GoogleFonts.urbanist(),
           ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
         ),
-        const SizedBox(height: 2),
-        Text('points', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-      ],
-    ),
-  );
-
-  Widget _trendChip() => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-    decoration: BoxDecoration(
-      color: _statusColor.withValues(alpha: 0.15),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(_statusIcon, size: 16, color: _statusColor),
-        const SizedBox(width: 4),
-        Text(house.status, style: TextStyle(fontSize: 12, color: _statusColor)),
-      ],
-    ),
-  );
+      );
+    }
+  }
+  
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'sports':
+        return Icons.sports_basketball;
+      case 'academic':
+        return Icons.school;
+      case 'cultural':
+        return Icons.theater_comedy;
+      case 'community':
+        return Icons.people;
+      default:
+        return Icons.category;
+    }
+  }
 }

@@ -8,6 +8,9 @@ class Event {
   final String category;
   final bool isHouseEvent;
   final String? eventImage; // Renamed from imageUrl to eventImage
+  final double? price;
+  final int? availableSeats;
+  final int? participantCount;
 
   Event({
     required this.id,
@@ -19,6 +22,9 @@ class Event {
     required this.category,
     required this.isHouseEvent,
     this.eventImage, // Renamed from imageUrl to eventImage
+    this.price,
+    this.availableSeats,
+    this.participantCount,
   });
 
   // Helper method to check if the event falls within a specific date range

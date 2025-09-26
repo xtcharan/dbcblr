@@ -9,6 +9,8 @@ class IPhoneEventListCard extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback? onFavoriteToggle;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const IPhoneEventListCard({
     super.key,
@@ -16,6 +18,8 @@ class IPhoneEventListCard extends StatelessWidget {
     this.isFavorite = false,
     this.onFavoriteToggle,
     this.onTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -28,8 +32,11 @@ class IPhoneEventListCard extends StatelessWidget {
     final month = monthFormatter.format(event.startDate).toUpperCase();
     final time = timeFormatter.format(event.startDate);
 
+    final hasAdminActions = onEdit != null || onDelete != null;
+
     return GestureDetector(
       onTap: onTap,
+      onLongPress: hasAdminActions ? () => _showAdminMenu(context) : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
@@ -201,29 +208,47 @@ class IPhoneEventListCard extends StatelessWidget {
             
             const SizedBox(width: 12),
             
-            // Date oval and heart
+            // Date oval and heart/admin
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Heart icon
-                GestureDetector(
-                  onTap: onFavoriteToggle,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: isFavorite 
-                          ? ThemeColors.primaryWithOpacity(0.2)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(16),
+                // Admin actions or Heart icon
+                if (hasAdminActions)
+                  GestureDetector(
+                    onTap: () => _showAdminMenu(context),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        Icons.more_vert,
+                        color: ThemeColors.icon(context),
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? Colors.red : ThemeColors.icon(context),
-                      size: 20,
+                  )
+                else
+                  GestureDetector(
+                    onTap: onFavoriteToggle,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: isFavorite 
+                            ? ThemeColors.primaryWithOpacity(0.2)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : ThemeColors.icon(context),
+                        size: 20,
+                      ),
                     ),
                   ),
-                ),
                 
                 const SizedBox(height: 8),
                 
@@ -268,6 +293,114 @@ class IPhoneEventListCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+  
+  void _showAdminMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: ThemeColors.surface(context),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: ThemeColors.icon(context).withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                
+                // Event title
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    event.title,
+                    style: GoogleFonts.urbanist(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: ThemeColors.text(context),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Actions
+                if (onEdit != null)
+                  ListTile(
+                    leading: Icon(
+                      Icons.edit,
+                      color: ThemeColors.primary,
+                    ),
+                    title: Text(
+                      'Edit Event',
+                      style: GoogleFonts.urbanist(
+                        color: ThemeColors.text(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      onEdit!();
+                    },
+                  ),
+                
+                if (onDelete != null)
+                  ListTile(
+                    leading: const Icon(
+                      Icons.delete,
+                      color: Colors.red,
+                    ),
+                    title: Text(
+                      'Delete Event',
+                      style: GoogleFonts.urbanist(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      onDelete!();
+                    },
+                  ),
+                
+                ListTile(
+                  leading: Icon(
+                    Icons.close,
+                    color: ThemeColors.icon(context),
+                  ),
+                  title: Text(
+                    'Cancel',
+                    style: GoogleFonts.urbanist(
+                      color: ThemeColors.text(context),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onTap: () => Navigator.pop(context),
+                ),
+                
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

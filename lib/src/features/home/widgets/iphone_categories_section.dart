@@ -106,13 +106,13 @@ class IPhoneCategoriesSection extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: isSelected 
-                                ? const Color(0xFFFCB900)
+                                ? const Color(0xFFf8ce82)
                                 : const Color(0xFF2A2A2A),
                             width: isSelected ? 3 : 2,
                           ),
                           boxShadow: isSelected ? [
                             BoxShadow(
-                              color: const Color(0xFFFCB900).withValues(alpha: 0.3),
+                              color: const Color(0xFFf8ce82).withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -151,7 +151,7 @@ class IPhoneCategoriesSection extends StatelessWidget {
                                 child: Icon(
                                   _getCategoryIcon(category),
                                   color: isSelected 
-                                      ? const Color(0xFFFCB900)
+                                      ? const Color(0xFFf8ce82)
                                       : const Color(0xFF404040),
                                   size: 24,
                                 ),
@@ -170,7 +170,7 @@ class IPhoneCategoriesSection extends StatelessWidget {
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: isSelected 
-                              ? const Color(0xFFFCB900)
+                              ? const Color(0xFFf8ce82)
                               : const Color(0xFF404040),
                         ),
                       ),

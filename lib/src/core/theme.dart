@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Light Theme - White background, black text, FCB900 accent
+  // Light Theme - White background, black text, f8ce82 accent
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -27,7 +27,7 @@ class AppTheme {
       ),
     ),
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFFFCB900), // Primary Orange
+      primary: Color(0xFFf8ce82), // Primary Orange
       secondary: Color(0xFF757575), // Light Gray
       surface: Colors.white,
       surfaceTint: Colors.white,
@@ -38,11 +38,11 @@ class AppTheme {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.white,
-      indicatorColor: const Color(0xFFFCB900).withValues(alpha: 0.2),
+      indicatorColor: Colors.blue.withValues(alpha: 0.2),
       labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(color: Color(0xFFFCB900), fontSize: 12, fontWeight: FontWeight.w600);
+            return const TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.w600);
           }
           return const TextStyle(color: Colors.black54, fontSize: 12);
         },
@@ -66,7 +66,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: Color(0xFFFCB900), width: 2),
+        borderSide: const BorderSide(color: Color(0xFFf8ce82), width: 2),
       ),
       hintStyle: const TextStyle(
         color: Colors.black54,
@@ -99,7 +99,7 @@ class AppTheme {
       ),
     ),
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFFFCB900), // Primary Orange
+      primary: Color(0xFFf8ce82), // Primary Orange
       secondary: Color(0xFF404040), // Subtle Gray
       surface: Color(0xFF1A1A1A),
       surfaceTint: Colors.black,
@@ -110,12 +110,12 @@ class AppTheme {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.black,
-      indicatorColor: const Color(0xFFFCB900).withValues(alpha: 0.2),
+      indicatorColor: Colors.blue.withValues(alpha: 0.2),
       labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.selected)) {
             return GoogleFonts.urbanist(
-              color: const Color(0xFFFCB900),
+              color: Colors.blue,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             );
@@ -145,7 +145,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: Color(0xFFFCB900), width: 2),
+        borderSide: const BorderSide(color: Color(0xFFf8ce82), width: 2),
       ),
       hintStyle: GoogleFonts.urbanist(
         color: Color(0xFF404040),
