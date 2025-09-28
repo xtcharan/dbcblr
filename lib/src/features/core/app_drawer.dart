@@ -179,22 +179,6 @@ class AppDrawer extends StatelessWidget {
         ),
         NavigationDrawerDestination(
           icon: Icon(
-            Icons.sports,
-            color: Theme.of(context).brightness == Brightness.light 
-                ? Colors.black54 
-                : Colors.white70,
-          ),
-          label: Text(
-            'Sports',
-            style: TextStyle(
-              color: Theme.of(context).brightness == Brightness.light 
-                  ? Colors.black 
-                  : Colors.white,
-            ),
-          ),
-        ),
-        NavigationDrawerDestination(
-          icon: Icon(
             Icons.person,
             color: Theme.of(context).brightness == Brightness.light 
                 ? Colors.black54 

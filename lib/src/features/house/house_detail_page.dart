@@ -18,7 +18,21 @@ class HouseDetailPage extends StatefulWidget {
   State<HouseDetailPage> createState() => _HouseDetailPageState();
 }
 
-class _HouseDetailPageState extends State<HouseDetailPage> {
+class _HouseDetailPageState extends State<HouseDetailPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+  
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+  
   @override
   Widget build(BuildContext context) {
     final houseColor = Color(
@@ -45,29 +59,23 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
             // Custom Header
             _buildHeader(context, houseColor),
             
-            // Scrollable Content
+            // Navigation Tabs
+            _buildTabBar(context, houseColor),
+            
+            // Tab Content
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    
-                    // House Stats Card
-                    _buildHouseStatsCard(context, houseColor),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Points Breakdown
-                    _buildPointsBreakdown(context, houseColor, categoryPoints),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Recent Activities
-                    _buildRecentActivities(context, activities),
-                    
-                    const SizedBox(height: 30),
-                  ],
-                ),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Stats Tab
+                  _buildStatsTab(context, houseColor, categoryPoints, activities),
+                  
+                  // Announcements Tab
+                  _buildAnnouncementsTab(context, houseColor),
+                  
+                  // Events Tab
+                  _buildEventsTab(context, houseColor),
+                ],
               ),
             ),
           ],
@@ -176,7 +184,250 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
       ),
     );
   }
-
+  
+  Widget _buildTabBar(BuildContext context, Color houseColor) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: ThemeColors.cardBackground(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: ThemeColors.cardBorder(context),
+          width: 1,
+        ),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: houseColor.withValues(alpha: 0.1),
+        ),
+        labelColor: houseColor,
+        unselectedLabelColor: ThemeColors.textSecondary(context),
+        labelStyle: GoogleFonts.urbanist(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: GoogleFonts.urbanist(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        tabs: const [
+          Tab(
+            text: 'Stats',
+            icon: Icon(Icons.analytics_outlined, size: 20),
+          ),
+          Tab(
+            text: 'Announcements',
+            icon: Icon(Icons.announcement_outlined, size: 20),
+          ),
+          Tab(
+            text: 'Events',
+            icon: Icon(Icons.event_outlined, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildStatsTab(BuildContext context, Color houseColor, Map<String, int> categoryPoints, List<Activity> activities) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          
+          // House Stats Card
+          _buildHouseStatsCard(context, houseColor),
+          
+          const SizedBox(height: 20),
+          
+          // Points Breakdown
+          _buildPointsBreakdown(context, houseColor, categoryPoints),
+          
+          const SizedBox(height: 20),
+          
+          // Recent Activities
+          _buildRecentActivities(context, activities),
+          
+          const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildAnnouncementsTab(BuildContext context, Color houseColor) {
+    // Sample announcements data
+    final announcements = [
+      {
+        'id': '1',
+        'title': 'House Meeting Tomorrow',
+        'content': 'All Topaz Tigers are invited to our monthly house meeting tomorrow at 4 PM in the main hall. We\'ll be discussing upcoming events and initiatives.',
+        'author': 'Sarah Johnson',
+        'authorRole': 'House Captain',
+        'timestamp': '2 hours ago',
+        'likes': 12,
+        'comments': 5,
+      },
+      {
+        'id': '2',
+        'title': 'Inter-House Football Match',
+        'content': 'Great job everyone on our victory against the Ruby Rhinos yesterday! Special thanks to our football team for their outstanding performance.',
+        'author': 'Mike Chen',
+        'authorRole': 'Sports Coordinator',
+        'timestamp': '1 day ago',
+        'likes': 24,
+        'comments': 8,
+      },
+      {
+        'id': '3',
+        'title': 'Study Group Formation',
+        'content': 'Looking to form study groups for the upcoming exams. If you\'re interested in joining or leading a group, please comment below with your subjects.',
+        'author': 'Emma Davis',
+        'authorRole': 'Academic Secretary',
+        'timestamp': '3 days ago',
+        'likes': 18,
+        'comments': 15,
+      },
+    ];
+    
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          
+          // Create New Announcement Button
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            child: ElevatedButton.icon(
+              onPressed: () => _showCreateAnnouncementDialog(context, houseColor),
+              icon: const Icon(Icons.add, size: 20),
+              label: Text(
+                'Create Announcement',
+                style: GoogleFonts.urbanist(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: houseColor,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Announcements List
+          ...announcements.map((announcement) => _buildAnnouncementCard(
+            context,
+            houseColor,
+            announcement,
+          )),
+          
+          const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEventsTab(BuildContext context, Color houseColor) {
+    // Sample events data
+    final events = [
+      {
+        'id': '1',
+        'title': 'Inter-House Dance Competition',
+        'description': 'Solo dance competition between all houses. Show your moves and represent Topaz Tigers!',
+        'date': '2024-01-15',
+        'time': '6:00 PM - 9:00 PM',
+        'venue': 'Main Auditorium',
+        'enrollments': 8,
+        'maxEnrollments': 15,
+        'deadline': '2024-01-10',
+        'status': 'Open',
+      },
+      {
+        'id': '2',
+        'title': 'Science Quiz Championship',
+        'description': 'Test your scientific knowledge in this inter-house quiz competition.',
+        'date': '2024-01-20',
+        'time': '4:00 PM - 6:00 PM',
+        'venue': 'Science Lab',
+        'enrollments': 12,
+        'maxEnrollments': 20,
+        'deadline': '2024-01-15',
+        'status': 'Open',
+      },
+      {
+        'id': '3',
+        'title': 'Art & Craft Exhibition',
+        'description': 'Submit your creative artworks for the inter-house exhibition.',
+        'date': '2024-01-25',
+        'time': '10:00 AM - 4:00 PM',
+        'venue': 'Art Gallery',
+        'enrollments': 5,
+        'maxEnrollments': 25,
+        'deadline': '2024-01-22',
+        'status': 'Closed',
+      },
+    ];
+    
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          
+          // Admin Note (if user is admin)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: houseColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: houseColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.admin_panel_settings,
+                  color: houseColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'As a house admin, you can see all enrollments and manage events.',
+                    style: GoogleFonts.urbanist(
+                      fontSize: 14,
+                      color: houseColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Events List
+          ...events.map((event) => _buildEventCard(
+            context,
+            houseColor,
+            event,
+          )),
+          
+          const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+  
   Widget _buildHouseStatsCard(BuildContext context, Color houseColor) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -551,6 +802,711 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
     );
   }
 
+  Widget _buildAnnouncementCard(BuildContext context, Color houseColor, Map<String, dynamic> announcement) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ThemeColors.cardBackground(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: ThemeColors.cardBorder(context),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with author info
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: houseColor.withValues(alpha: 0.2),
+                child: Text(
+                  announcement['author']!.split(' ').map((name) => name[0]).join(),
+                  style: GoogleFonts.urbanist(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: houseColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      announcement['author']!,
+                      style: GoogleFonts.urbanist(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: ThemeColors.text(context),
+                      ),
+                    ),
+                    Text(
+                      announcement['authorRole']!,
+                      style: GoogleFonts.urbanist(
+                        fontSize: 12,
+                        color: ThemeColors.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                announcement['timestamp']!,
+                style: GoogleFonts.urbanist(
+                  fontSize: 12,
+                  color: ThemeColors.textSecondary(context),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Title
+          Text(
+            announcement['title']!,
+            style: GoogleFonts.urbanist(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: ThemeColors.text(context),
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // Content
+          Text(
+            announcement['content']!,
+            style: GoogleFonts.urbanist(
+              fontSize: 14,
+              color: ThemeColors.text(context),
+              height: 1.4,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Actions (like, comment)
+          Row(
+            children: [
+              _buildActionButton(
+                context,
+                houseColor,
+                Icons.favorite_border,
+                '${announcement['likes']} likes',
+                () => _likeAnnouncement(announcement['id']!),
+              ),
+              const SizedBox(width: 16),
+              _buildActionButton(
+                context,
+                houseColor,
+                Icons.comment_outlined,
+                '${announcement['comments']} comments',
+                () => _showCommentsDialog(context, houseColor, announcement),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEventCard(BuildContext context, Color houseColor, Map<String, dynamic> event) {
+    final isOpen = event['status'] == 'Open';
+    final enrollmentPercentage = (event['enrollments'] as int) / (event['maxEnrollments'] as int);
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ThemeColors.cardBackground(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: ThemeColors.cardBorder(context),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with status badge
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  event['title']!,
+                  style: GoogleFonts.urbanist(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: ThemeColors.text(context),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isOpen 
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  event['status']!,
+                  style: GoogleFonts.urbanist(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isOpen ? Colors.green : Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // Description
+          Text(
+            event['description']!,
+            style: GoogleFonts.urbanist(
+              fontSize: 14,
+              color: ThemeColors.textSecondary(context),
+              height: 1.4,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Event details
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_today,
+                size: 16,
+                color: ThemeColors.textSecondary(context),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                event['date']!,
+                style: GoogleFonts.urbanist(
+                  fontSize: 12,
+                  color: ThemeColors.textSecondary(context),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Icon(
+                Icons.access_time,
+                size: 16,
+                color: ThemeColors.textSecondary(context),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  event['time']!,
+                  style: GoogleFonts.urbanist(
+                    fontSize: 12,
+                    color: ThemeColors.textSecondary(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 8),
+          
+          Row(
+            children: [
+              Icon(
+                Icons.location_on,
+                size: 16,
+                color: ThemeColors.textSecondary(context),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                event['venue']!,
+                style: GoogleFonts.urbanist(
+                  fontSize: 12,
+                  color: ThemeColors.textSecondary(context),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Enrollment status
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: houseColor.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.people,
+                      size: 16,
+                      color: houseColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Enrollments: ${event['enrollments']}/${event['maxEnrollments']}',
+                      style: GoogleFonts.urbanist(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: ThemeColors.text(context),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'Deadline: ${event['deadline']}',
+                      style: GoogleFonts.urbanist(
+                        fontSize: 12,
+                        color: ThemeColors.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // Enrollment progress bar
+                Container(
+                  height: 6,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: ThemeColors.cardBorder(context),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: enrollmentPercentage,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: houseColor,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: isOpen 
+                      ? () => _enrollInEvent(context, houseColor, event)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isOpen ? houseColor : Colors.grey,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    isOpen ? 'Enroll Now' : 'Closed',
+                    style: GoogleFonts.urbanist(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () => _viewEnrollments(context, houseColor, event),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ThemeColors.surface(context),
+                  foregroundColor: houseColor,
+                  side: BorderSide(color: houseColor),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'View Enrollments',
+                  style: GoogleFonts.urbanist(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildActionButton(BuildContext context, Color houseColor, IconData icon, String text, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: ThemeColors.textSecondary(context),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: GoogleFonts.urbanist(
+              fontSize: 12,
+              color: ThemeColors.textSecondary(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _showCreateAnnouncementDialog(BuildContext context, Color houseColor) {
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: ThemeColors.cardBackground(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.announcement_outlined,
+              color: houseColor,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Create Announcement',
+              style: GoogleFonts.urbanist(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: ThemeColors.text(context),
+              ),
+            ),
+          ],
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: titleController,
+                style: TextStyle(color: ThemeColors.text(context)),
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  labelStyle: TextStyle(color: ThemeColors.textSecondary(context)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: houseColor, width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: contentController,
+                style: TextStyle(color: ThemeColors.text(context)),
+                maxLines: 4,
+                decoration: InputDecoration(
+                  labelText: 'Content',
+                  labelStyle: TextStyle(color: ThemeColors.textSecondary(context)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: houseColor, width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter content';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: ThemeColors.textSecondary(context)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Announcement "${titleController.text}" created successfully!',
+                      style: GoogleFonts.urbanist(),
+                    ),
+                    backgroundColor: houseColor,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: houseColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'Create',
+              style: GoogleFonts.urbanist(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _likeAnnouncement(String announcementId) {
+    // Implementation for liking an announcement
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Liked announcement!',
+          style: GoogleFonts.urbanist(),
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+  
+  void _showCommentsDialog(BuildContext context, Color houseColor, Map<String, dynamic> announcement) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: ThemeColors.cardBackground(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Comments',
+          style: GoogleFonts.urbanist(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: ThemeColors.text(context),
+          ),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Comments feature coming soon!',
+                style: GoogleFonts.urbanist(
+                  color: ThemeColors.textSecondary(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Close',
+              style: TextStyle(color: houseColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _enrollInEvent(BuildContext context, Color houseColor, Map<String, dynamic> event) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: ThemeColors.cardBackground(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
+          'Confirm Enrollment',
+          style: GoogleFonts.urbanist(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: ThemeColors.text(context),
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to enroll in "${event['title']}"?',
+          style: GoogleFonts.urbanist(
+            color: ThemeColors.text(context),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: ThemeColors.textSecondary(context)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Successfully enrolled in "${event['title']}"!',
+                    style: GoogleFonts.urbanist(),
+                  ),
+                  backgroundColor: houseColor,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: houseColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'Enroll',
+              style: GoogleFonts.urbanist(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _viewEnrollments(BuildContext context, Color houseColor, Map<String, dynamic> event) {
+    // Sample enrollment data
+    final enrollments = [
+      {'name': 'Alice Johnson', 'enrolledAt': '2024-01-05 10:30 AM'},
+      {'name': 'Bob Smith', 'enrolledAt': '2024-01-05 2:15 PM'},
+      {'name': 'Carol Davis', 'enrolledAt': '2024-01-06 9:45 AM'},
+      {'name': 'David Brown', 'enrolledAt': '2024-01-06 4:20 PM'},
+      {'name': 'Emily Wilson', 'enrolledAt': '2024-01-07 11:10 AM'},
+    ];
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: ThemeColors.cardBackground(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.people_outline,
+              color: houseColor,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Enrollments - ${event['title']}',
+                style: GoogleFonts.urbanist(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: ThemeColors.text(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 300,
+          child: enrollments.isEmpty
+              ? Center(
+                  child: Text(
+                    'No enrollments yet',
+                    style: GoogleFonts.urbanist(
+                      color: ThemeColors.textSecondary(context),
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: enrollments.length,
+                  itemBuilder: (context, index) {
+                    final enrollment = enrollments[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: houseColor.withValues(alpha: 0.2),
+                        child: Text(
+                          enrollment['name']!.split(' ').map((name) => name[0]).join(),
+                          style: GoogleFonts.urbanist(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: houseColor,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        enrollment['name']!,
+                        style: GoogleFonts.urbanist(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: ThemeColors.text(context),
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Enrolled: ${enrollment['enrolledAt']}',
+                        style: GoogleFonts.urbanist(
+                          fontSize: 12,
+                          color: ThemeColors.textSecondary(context),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Close',
+              style: TextStyle(color: houseColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'sports':

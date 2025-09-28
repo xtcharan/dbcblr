@@ -72,26 +72,6 @@ class ClubsData {
       ),
     ];
 
-    final codingClubEvents = [
-      ClubEvent(
-        id: 'cc_flutter_workshop',
-        title: 'Flutter App Development Bootcamp',
-        description: 'Build cross-platform mobile apps with Flutter and Dart.',
-        date: DateTime(2024, 10, 8),
-        endDate: DateTime(2024, 10, 9),
-        time: '9:00 AM - 5:00 PM',
-        location: 'Mobile Dev Lab',
-        type: EventType.workshop,
-        scope: EventScope.interCollege,
-        maxParticipants: 30,
-        currentParticipants: 22,
-        fees: 300,
-        requirements: 'Laptop with Android Studio installed',
-        contactInfo: 'mobile@codingclub.edu',
-        highlights: ['2-day intensive training', 'Build and deploy real app', 'Google certified trainer'],
-        isRegistrationOpen: true,
-      ),
-    ];
 
     final bitblaze = Club(
       id: 'bitblaze',
@@ -130,63 +110,7 @@ class ClubsData {
       specializations: ['Web Development', 'Mobile Apps', 'AI/ML', 'Competitive Programming'],
     );
 
-    final codingClub = Club(
-      id: 'coding_club',
-      name: 'CODING CLUB',
-      shortName: 'CodingClub',
-      departmentCode: 'BCA',
-      tagline: 'Code. Create. Innovate.',
-      description: 'General coding club focusing on various programming languages and development practices.',
-      icon: Icons.code,
-      primaryColor: Colors.deepPurple,
-      secondaryColor: Colors.deepPurple.shade100,
-      memberCount: 89,
-      rating: 4.6,
-      events: codingClubEvents,
-      recentActivities: [
-        'Python Basics Workshop - Sep 22',
-        'Data Structures Study Group - Sep 19',
-        'Open Source Contribution Drive - Sep 16',
-      ],
-      leadership: [
-        const ClubLeader(name: 'Vikram Singh', role: 'President'),
-        const ClubLeader(name: 'Anita Desai', role: 'Secretary'),
-      ],
-      achievements: [
-        'GitHub Stars: 2000+',
-        'Open Source Contributors: 45',
-      ],
-      establishedDate: DateTime(2020, 1, 10),
-      specializations: ['Python', 'JavaScript', 'Data Science', 'Backend Development'],
-    );
 
-    final techInnovators = Club(
-      id: 'tech_innovators',
-      name: 'TECH INNOVATORS',
-      shortName: 'TechInn',
-      departmentCode: 'BCA',
-      tagline: 'Tomorrow Starts Today',
-      description: 'Focus on emerging technologies and innovation in the tech space.',
-      icon: Icons.lightbulb,
-      primaryColor: Colors.orange,
-      secondaryColor: Colors.orange.shade100,
-      memberCount: 67,
-      rating: 4.5,
-      events: [],
-      recentActivities: [
-        'IoT Workshop - Sep 25',
-        'Blockchain Seminar - Sep 20',
-      ],
-      leadership: [
-        const ClubLeader(name: 'Kiran Joshi', role: 'President'),
-      ],
-      achievements: [
-        'IoT Innovation Award',
-        'Smart Campus Project Implementation',
-      ],
-      establishedDate: DateTime(2021, 3, 5),
-      specializations: ['IoT', 'Blockchain', 'AR/VR', 'Robotics'],
-    );
 
     return Department(
       code: 'BCA',
@@ -194,7 +118,7 @@ class ClubsData {
       description: 'Department of Computer Applications focusing on software development, programming, and IT solutions.',
       primaryColor: Colors.indigo,
       icon: Icons.computer,
-      clubs: [bitblaze, codingClub, techInnovators],
+      clubs: [bitblaze], // Only main club per department
       totalMembers: 281,
       totalEvents: 24,
       rating: 4.7,
@@ -222,10 +146,10 @@ class ClubsData {
       ),
     ];
 
-    final synergy = Club(
-      id: 'synergy',
-      name: 'SYNERGY',
-      shortName: 'Synergy',
+    final synapse = Club(
+      id: 'synapse',
+      name: 'SYNAPSE',
+      shortName: 'Synapse',
       departmentCode: 'BBA',
       tagline: "Leading Tomorrow's Business",
       description: 'Business administration club focusing on leadership, entrepreneurship, and business skills.',
@@ -258,7 +182,7 @@ class ClubsData {
       description: 'Department focusing on business management, leadership, and entrepreneurship.',
       primaryColor: Colors.orange,
       icon: Icons.business,
-      clubs: [synergy],
+      clubs: [synapse],
       totalMembers: 89,
       totalEvents: 12,
       rating: 4.7,
@@ -335,36 +259,16 @@ class ClubsData {
   }
 
   static Department _getBSWDepartment() {
-    final seva = Club(
-      id: 'seva',
-      name: 'SEVA',
-      shortName: 'Seva',
-      departmentCode: 'BSW',
-      tagline: 'Service Before Self',
-      description: 'Social work club focusing on community service and social welfare.',
-      icon: Icons.volunteer_activism,
-      primaryColor: Colors.red,
-      secondaryColor: Colors.red.shade100,
-      memberCount: 67,
-      rating: 4.8,
-      events: [],
-      recentActivities: ['Community Kitchen Drive - Sep 26', 'Blood Donation Camp - Sep 15'],
-      leadership: [const ClubLeader(name: 'Rakesh Kumar', role: 'President')],
-      achievements: ['Community Service Award 2024', '500+ Hours Community Service'],
-      establishedDate: DateTime(2019, 1, 15),
-      specializations: ['Community Service', 'Social Welfare', 'NGO Partnership', 'Volunteer Coordination'],
-    );
-
     return Department(
       code: 'BSW',
       name: 'Bachelor of Social Work',
       description: 'Department of Social Work focusing on community service and social welfare.',
       primaryColor: Colors.red,
       icon: Icons.volunteer_activism,
-      clubs: [seva],
-      totalMembers: 67,
-      totalEvents: 10,
-      rating: 4.8,
+      clubs: [], // No active clubs
+      totalMembers: 0,
+      totalEvents: 0,
+      rating: 0.0,
     );
   }
 }

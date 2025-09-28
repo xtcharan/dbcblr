@@ -230,7 +230,7 @@ class _AddPointsDialogState extends State<_AddPointsDialog> {
           children: [
             // House Selection
             DropdownButtonFormField<String>(
-              value: _selectedHouse,
+              initialValue: _selectedHouse,
               decoration: InputDecoration(
                 labelText: 'Select House',
                 labelStyle: TextStyle(color: ThemeColors.textSecondary(context)),
@@ -268,7 +268,7 @@ class _AddPointsDialogState extends State<_AddPointsDialog> {
             
             // Category Selection
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: InputDecoration(
                 labelText: 'Select Category',
                 labelStyle: TextStyle(color: ThemeColors.textSecondary(context)),

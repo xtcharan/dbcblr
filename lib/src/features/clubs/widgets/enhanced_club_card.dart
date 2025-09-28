@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/club.dart';
+import '../../../shared/utils/theme_colors.dart';
 
 class EnhancedClubCard extends StatelessWidget {
   final Club club;
@@ -18,10 +20,15 @@ class EnhancedClubCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
+        color: ThemeColors.cardBackground(context),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: ThemeColors.cardBorder(context),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: club.primaryColor.withValues(alpha: 0.08),
+            color: ThemeColors.cardBorder(context).withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -29,7 +36,7 @@ class EnhancedClubCard extends StatelessWidget {
       ),
       child: Material(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.white,
+        color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: onTap,
@@ -64,17 +71,18 @@ class EnhancedClubCard extends StatelessWidget {
                         children: [
                           Text(
                             club.shortName,
-                            style: const TextStyle(
+                            style: GoogleFonts.urbanist(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: ThemeColors.text(context),
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             club.tagline,
-                            style: TextStyle(
+                            style: GoogleFonts.urbanist(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: ThemeColors.textSecondary(context),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -103,7 +111,7 @@ class EnhancedClubCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             club.rating.toString(),
-                            style: TextStyle(
+                            style: GoogleFonts.urbanist(
                               color: club.primaryColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
@@ -174,9 +182,10 @@ class EnhancedClubCard extends StatelessWidget {
                             children: [
                               Text(
                                 nextEvent.title,
-                                style: const TextStyle(
+                                style: GoogleFonts.urbanist(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
+                                  color: ThemeColors.text(context),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -184,9 +193,9 @@ class EnhancedClubCard extends StatelessWidget {
                               const SizedBox(height: 2),
                               Text(
                                 _formatEventDate(nextEvent.date),
-                                style: TextStyle(
+                                style: GoogleFonts.urbanist(
                                   fontSize: 11,
-                                  color: Colors.grey[600],
+                                  color: ThemeColors.textSecondary(context),
                                 ),
                               ),
                             ],
@@ -202,9 +211,9 @@ class EnhancedClubCard extends StatelessWidget {
                               color: Colors.green.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
+                            child: Text(
                               'OPEN',
-                              style: TextStyle(
+                              style: GoogleFonts.urbanist(
                                 fontSize: 10,
                                 color: Colors.green,
                                 fontWeight: FontWeight.bold,
@@ -218,52 +227,27 @@ class EnhancedClubCard extends StatelessWidget {
                 
                 const SizedBox(height: 16),
                 
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          // Join club action
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: club.primaryColor),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text(
-                          'Join Club',
-                          style: TextStyle(
-                            color: club.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                // Action Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: onTap,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: club.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'See Events',
+                      style: GoogleFonts.urbanist(
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: onTap,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: club.primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'View Details',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -333,22 +317,23 @@ class _QuickStat extends StatelessWidget {
         Icon(
           icon,
           size: 16,
-          color: Colors.grey[600],
+          color: ThemeColors.iconSecondary(context),
         ),
         const SizedBox(width: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: GoogleFonts.urbanist(
             fontSize: 14,
             fontWeight: FontWeight.bold,
+            color: ThemeColors.text(context),
           ),
         ),
         const SizedBox(width: 2),
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.urbanist(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: ThemeColors.textSecondary(context),
           ),
         ),
       ],
