@@ -5,6 +5,8 @@ import 'widgets/stories_row.dart';
 import 'widgets/post_card.dart';
 import 'widgets/story_viewer.dart';
 import 'widgets/comment_sheet.dart';
+import '../chat/chat_page.dart';
+import '../../shared/utils/theme_colors.dart';
 
 class AnnouncementsPage extends StatefulWidget {
   const AnnouncementsPage({super.key});
@@ -75,6 +77,14 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     }
   }
 
+  void _openChat() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ChatPage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +96,53 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         scrolledUnderElevation: 1,
+        actions: [
+          // Chat button in the top-right corner
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              onPressed: _openChat,
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 26,
+                    color: ThemeColors.text(context),
+                  ),
+                  // Unread messages indicator (you can make this dynamic)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '3',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              tooltip: 'Messages',
+            ),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         key: _refreshIndicatorKey,
