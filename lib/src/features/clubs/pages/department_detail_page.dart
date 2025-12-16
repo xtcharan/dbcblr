@@ -3,6 +3,7 @@ import '../../../services/api_service.dart';
 import '../../../models/department.dart';
 import '../../../models/club.dart';
 import 'club_detail_page.dart';
+import 'edit_club_page.dart';
 
 class DepartmentDetailPage extends StatefulWidget {
   final Department department;
@@ -266,6 +267,79 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
     );
   }
 
+  void _handleClubAction(String action, Club club) async {
+    switch (action) {
+      case 'view':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ClubDetailPage(club: club),
+          ),
+        );
+        break;
+      case 'edit':
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditClubPage(club: club),
+          ),
+        );
+        if (result == true) {
+          _loadClubs();
+        }
+        break;
+      case 'delete':
+        _showClubDeleteConfirmation(club);
+        break;
+    }
+  }
+
+  void _showClubDeleteConfirmation(Club club) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Club'),
+        content: Text(
+          'Are you sure you want to delete "${club.name}"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await _apiService.deleteClub(club.id);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Club deleted successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _loadClubs();
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildClubCard(Club club) {
     final primaryColor = _parseColor(club.primaryColor);
     final secondaryColor = _parseColor(club.secondaryColor);
@@ -360,7 +434,42 @@ class _DepartmentDetailPageState extends State<DepartmentDetailPage> {
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                  onSelected: (value) => _handleClubAction(value, club),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'view',
+                      child: Row(
+                        children: [
+                          Icon(Icons.visibility, size: 20),
+                          SizedBox(width: 12),
+                          Text('View'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 20),
+                          SizedBox(width: 12),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          SizedBox(width: 12),
+                          Text('Delete', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

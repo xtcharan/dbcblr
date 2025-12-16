@@ -5,6 +5,7 @@ import '../../../models/club.dart';
 import 'department_detail_page.dart';
 import 'create_club_page.dart';
 import 'create_department_page.dart';
+import 'edit_department_page.dart';
 
 class DepartmentsListPage extends StatefulWidget {
   const DepartmentsListPage({super.key});
@@ -186,6 +187,79 @@ class _DepartmentsListPageState extends State<DepartmentsListPage> {
     );
   }
 
+  void _handleDepartmentAction(String action, Department department) async {
+    switch (action) {
+      case 'view':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DepartmentDetailPage(department: department),
+          ),
+        );
+        break;
+      case 'edit':
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditDepartmentPage(department: department),
+          ),
+        );
+        if (result == true) {
+          _loadDepartments();
+        }
+        break;
+      case 'delete':
+        _showDeleteConfirmation(department);
+        break;
+    }
+  }
+
+  void _showDeleteConfirmation(Department department) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Department'),
+        content: Text(
+          'Are you sure you want to delete "${department.name}"? This will also delete all clubs in this department.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await _apiService.deleteDepartment(department.id);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Department deleted successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _loadDepartments();
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDepartmentCard(Department department) {
     final color = _parseColor(department.colorHex);
 
@@ -266,7 +340,42 @@ class _DepartmentsListPageState extends State<DepartmentsListPage> {
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                    onSelected: (value) => _handleDepartmentAction(value, department),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'view',
+                        child: Row(
+                          children: [
+                            Icon(Icons.visibility, size: 20),
+                            SizedBox(width: 12),
+                            Text('View'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 20),
+                            SizedBox(width: 12),
+                            Text('Edit'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            SizedBox(width: 12),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
               if (department.description != null) ...[

@@ -345,7 +345,8 @@ class ApiService {
         if (colorHex != null) 'color_hex': colorHex,
       });
       
-      if (response.data['success'] == true) {
+      // Handle both formats: {success: true, data: {}} or {data: {}}
+      if (response.data['data'] != null) {
         return response.data['data'];
       }
       
@@ -360,8 +361,9 @@ class ApiService {
     try {
       final response = await _dio.delete('/admin/departments/$id');
       
-      if (response.data['success'] != true) {
-        throw Exception(response.data['error'] ?? 'Failed to delete department');
+      // Handle both formats: {success: true, message: '...'} or {message: '...'}
+      if (response.data['error'] != null) {
+        throw Exception(response.data['error']);
       }
     } on DioException catch (e) {
       throw _handleError(e);
@@ -473,7 +475,8 @@ class ApiService {
         if (socialLinks != null) 'social_links': socialLinks,
       });
       
-      if (response.data['success'] == true) {
+      // Handle both formats: {success: true, data: {}} or {data: {}}
+      if (response.data['data'] != null) {
         return response.data['data'];
       }
       
@@ -488,8 +491,9 @@ class ApiService {
     try {
       final response = await _dio.delete('/admin/clubs/$id');
       
-      if (response.data['success'] != true) {
-        throw Exception(response.data['error'] ?? 'Failed to delete club');
+      // Handle both formats: {success: true, message: '...'} or {message: '...'}
+      if (response.data['error'] != null) {
+        throw Exception(response.data['error']);
       }
     } on DioException catch (e) {
       throw _handleError(e);
