@@ -734,6 +734,118 @@ class ApiService {
     }
   }
 
+  // ==================== SCHEDULES ENDPOINTS ====================
+
+  /// Get schedules for a specific date (public - returns official schedules + personal if authenticated)
+  Future<List<Map<String, dynamic>>> getSchedules(DateTime date) async {
+    try {
+      final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final response = await _dio.get('/schedules', queryParameters: {'date': dateStr});
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> schedules = response.data['data'] ?? [];
+        return schedules.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch schedules');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Get single schedule by ID
+  Future<Map<String, dynamic>> getSchedule(String id) async {
+    try {
+      final response = await _dio.get('/schedules/$id');
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch schedule');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Create schedule (authenticated - admin can create official, students create personal)
+  Future<Map<String, dynamic>> createSchedule({
+    required String title,
+    String? description,
+    required DateTime scheduleDate,
+    required String startTime,
+    String? endTime,
+    String? location,
+    String scheduleType = 'personal', // 'official' or 'personal'
+  }) async {
+    try {
+      final dateStr = '${scheduleDate.year}-${scheduleDate.month.toString().padLeft(2, '0')}-${scheduleDate.day.toString().padLeft(2, '0')}';
+      final response = await _dio.post('/schedules', data: {
+        'title': title,
+        if (description != null) 'description': description,
+        'schedule_date': dateStr,
+        'start_time': startTime,
+        if (endTime != null) 'end_time': endTime,
+        if (location != null) 'location': location,
+        'schedule_type': scheduleType,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to create schedule');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Update schedule (authenticated - admin can update any, students can only update their personal schedules)
+  Future<Map<String, dynamic>> updateSchedule({
+    required String id,
+    String? title,
+    String? description,
+    DateTime? scheduleDate,
+    String? startTime,
+    String? endTime,
+    String? location,
+  }) async {
+    try {
+      final Map<String, dynamic> data = {};
+      if (title != null) data['title'] = title;
+      if (description != null) data['description'] = description;
+      if (scheduleDate != null) {
+        data['schedule_date'] = '${scheduleDate.year}-${scheduleDate.month.toString().padLeft(2, '0')}-${scheduleDate.day.toString().padLeft(2, '0')}';
+      }
+      if (startTime != null) data['start_time'] = startTime;
+      if (endTime != null) data['end_time'] = endTime;
+      if (location != null) data['location'] = location;
+      
+      final response = await _dio.put('/schedules/$id', data: data);
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to update schedule');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Delete schedule (authenticated - admin can delete any, students can only delete their personal schedules)
+  Future<void> deleteSchedule(String id) async {
+    try {
+      final response = await _dio.delete('/schedules/$id');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to delete schedule');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== ERROR HANDLING ====================
 
   String _handleError(DioException error) {
@@ -753,3 +865,4 @@ class ApiService {
     return 'An unexpected error occurred: ${error.message}';
   }
 }
+
