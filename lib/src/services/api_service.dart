@@ -243,6 +243,493 @@ class ApiService {
     }
   }
 
+  // ==================== DEPARTMENTS ENDPOINTS ====================
+
+  /// Get all departments (public)
+  Future<List<Map<String, dynamic>>> getDepartments() async {
+    try {
+      final response = await _dio.get('/departments');
+      
+      // Handle both formats: {success: true, data: []} or {data: []}
+      if (response.data['data'] != null) {
+        final List<dynamic> departments = response.data['data'] ?? [];
+        return departments.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch departments');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Get single department by ID (public)
+  Future<Map<String, dynamic>> getDepartment(String id) async {
+    try {
+      final response = await _dio.get('/departments/$id');
+      
+      // Handle both formats: {success: true, data: {}} or {data: {}}
+      if (response.data['data'] != null) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch department');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Get clubs in a department (public)
+  Future<List<Map<String, dynamic>>> getDepartmentClubs(String departmentId) async {
+    try {
+      final response = await _dio.get('/departments/$departmentId/clubs');
+      
+      // Handle both formats: {success: true, data: []} or {data: []}
+      if (response.data['data'] != null) {
+        final List<dynamic> clubs = response.data['data'] ?? [];
+        return clubs.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch department clubs');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Create department (admin only)
+  Future<Map<String, dynamic>> createDepartment({
+    required String code,
+    required String name,
+    String? description,
+    String? logoUrl,
+    String? iconName,
+    String? colorHex,
+  }) async {
+    try {
+      final response = await _dio.post('/admin/departments', data: {
+        'code': code,
+        'name': name,
+        if (description != null) 'description': description,
+        if (logoUrl != null) 'logo_url': logoUrl,
+        if (iconName != null) 'icon_name': iconName,
+        if (colorHex != null) 'color_hex': colorHex,
+      });
+      
+      // Handle both formats: {success: true, data: {}} or {data: {}}
+      if (response.data['data'] != null) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to create department');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Update department (admin only)
+  Future<Map<String, dynamic>> updateDepartment({
+    required String id,
+    String? code,
+    String? name,
+    String? description,
+    String? logoUrl,
+    String? iconName,
+    String? colorHex,
+  }) async {
+    try {
+      final response = await _dio.put('/admin/departments/$id', data: {
+        if (code != null) 'code': code,
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (logoUrl != null) 'logo_url': logoUrl,
+        if (iconName != null) 'icon_name': iconName,
+        if (colorHex != null) 'color_hex': colorHex,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to update department');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Delete department (admin only)
+  Future<void> deleteDepartment(String id) async {
+    try {
+      final response = await _dio.delete('/admin/departments/$id');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to delete department');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== CLUBS ENDPOINTS ====================
+
+  /// Get all clubs (public)
+  Future<List<Map<String, dynamic>>> getClubs() async {
+    try {
+      final response = await _dio.get('/clubs');
+      
+      // Handle both formats: {success: true, data: []} or {data: []}
+      if (response.data['data'] != null) {
+        final List<dynamic> clubs = response.data['data'] ?? [];
+        return clubs.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch clubs');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Get single club by ID (public)
+  Future<Map<String, dynamic>> getClub(String id) async {
+    try {
+      final response = await _dio.get('/clubs/$id');
+      
+      // Handle both formats: {success: true, data: {}} or {data: {}}
+      if (response.data['data'] != null) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch club');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Create club (admin only)
+  Future<Map<String, dynamic>> createClub({
+    String? departmentId,
+    required String name,
+    String? tagline,
+    String? description,
+    String? logoUrl,
+    String? primaryColor,
+    String? secondaryColor,
+    String? email,
+    String? phone,
+    String? website,
+    Map<String, dynamic>? socialLinks,
+  }) async {
+    try {
+      final response = await _dio.post('/admin/clubs', data: {
+        if (departmentId != null) 'department_id': departmentId,
+        'name': name,
+        if (tagline != null) 'tagline': tagline,
+        if (description != null) 'description': description,
+        if (logoUrl != null) 'logo_url': logoUrl,
+        if (primaryColor != null) 'primary_color': primaryColor,
+        if (secondaryColor != null) 'secondary_color': secondaryColor,
+        if (email != null) 'email': email,
+        if (phone != null) 'phone': phone,
+        if (website != null) 'website': website,
+        'social_links': socialLinks ?? {},
+      });
+      
+      // Handle both formats: {success: true, data: {}} or {data: {}}
+      if (response.data['data'] != null) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to create club');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Update club (admin only)
+  Future<Map<String, dynamic>> updateClub({
+    required String id,
+    String? departmentId,
+    String? name,
+    String? tagline,
+    String? description,
+    String? logoUrl,
+    String? primaryColor,
+    String? secondaryColor,
+    String? email,
+    String? phone,
+    String? website,
+    Map<String, dynamic>? socialLinks,
+  }) async {
+    try {
+      final response = await _dio.put('/admin/clubs/$id', data: {
+        if (departmentId != null) 'department_id': departmentId,
+        if (name != null) 'name': name,
+        if (tagline != null) 'tagline': tagline,
+        if (description != null) 'description': description,
+        if (logoUrl != null) 'logo_url': logoUrl,
+        if (primaryColor != null) 'primary_color': primaryColor,
+        if (secondaryColor != null) 'secondary_color': secondaryColor,
+        if (email != null) 'email': email,
+        if (phone != null) 'phone': phone,
+        if (website != null) 'website': website,
+        if (socialLinks != null) 'social_links': socialLinks,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to update club');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Delete club (admin only)
+  Future<void> deleteClub(String id) async {
+    try {
+      final response = await _dio.delete('/admin/clubs/$id');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to delete club');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Get club members (public)
+  Future<List<Map<String, dynamic>>> getClubMembers(String clubId) async {
+    try {
+      final response = await _dio.get('/clubs/$clubId/members');
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> members = response.data['data'] ?? [];
+        return members.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch club members');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Get club events (public)
+  Future<List<Map<String, dynamic>>> getClubEvents(String clubId) async {
+    try {
+      final response = await _dio.get('/clubs/$clubId/events');
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> events = response.data['data'] ?? [];
+        return events.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch club events');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== CLUB MEMBERS ENDPOINTS ====================
+
+  /// Add member to club (authenticated)
+  Future<Map<String, dynamic>> addClubMember({
+    required String clubId,
+    required String userId,
+    String? role,
+    String? position,
+  }) async {
+    try {
+      final response = await _dio.post('/clubs/$clubId/members', data: {
+        'user_id': userId,
+        if (role != null) 'role': role,
+        if (position != null) 'position': position,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to add club member');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Update club member (authenticated)
+  Future<Map<String, dynamic>> updateClubMember({
+    required String clubId,
+    required String userId,
+    String? role,
+    String? position,
+  }) async {
+    try {
+      final response = await _dio.put('/clubs/$clubId/members/$userId', data: {
+        if (role != null) 'role': role,
+        if (position != null) 'position': position,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to update club member');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Remove member from club (authenticated)
+  Future<void> removeClubMember({
+    required String clubId,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.delete('/clubs/$clubId/members/$userId');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to remove club member');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== CLUB ANNOUNCEMENTS ENDPOINTS ====================
+
+  /// Get club announcements (public)
+  Future<List<Map<String, dynamic>>> getClubAnnouncements(String clubId) async {
+    try {
+      final response = await _dio.get('/clubs/$clubId/announcements');
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> announcements = response.data['data'] ?? [];
+        return announcements.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch announcements');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Create club announcement (authenticated)
+  Future<Map<String, dynamic>> createClubAnnouncement({
+    required String clubId,
+    required String title,
+    required String content,
+    String? priority,
+    bool? isPinned,
+  }) async {
+    try {
+      final response = await _dio.post('/clubs/$clubId/announcements', data: {
+        'title': title,
+        'content': content,
+        if (priority != null) 'priority': priority,
+        if (isPinned != null) 'is_pinned': isPinned,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to create announcement');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Update club announcement (authenticated)
+  Future<Map<String, dynamic>> updateClubAnnouncement({
+    required String clubId,
+    required String announcementId,
+    String? title,
+    String? content,
+    String? priority,
+    bool? isPinned,
+  }) async {
+    try {
+      final response = await _dio.put('/clubs/$clubId/announcements/$announcementId', data: {
+        if (title != null) 'title': title,
+        if (content != null) 'content': content,
+        if (priority != null) 'priority': priority,
+        if (isPinned != null) 'is_pinned': isPinned,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to update announcement');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Delete club announcement (authenticated)
+  Future<void> deleteClubAnnouncement({
+    required String clubId,
+    required String announcementId,
+  }) async {
+    try {
+      final response = await _dio.delete('/clubs/$clubId/announcements/$announcementId');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to delete announcement');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== CLUB AWARDS ENDPOINTS ====================
+
+  /// Get club awards (public)
+  Future<List<Map<String, dynamic>>> getClubAwards(String clubId) async {
+    try {
+      final response = await _dio.get('/clubs/$clubId/awards');
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> awards = response.data['data'] ?? [];
+        return awards.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch awards');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Create club award (authenticated)
+  Future<Map<String, dynamic>> createClubAward({
+    required String clubId,
+    required String awardName,
+    String? description,
+    String? position,
+    double? prizeAmount,
+    String? eventName,
+    DateTime? awardedDate,
+    String? certificateUrl,
+  }) async {
+    try {
+      final response = await _dio.post('/clubs/$clubId/awards', data: {
+        'award_name': awardName,
+        if (description != null) 'description': description,
+        if (position != null) 'position': position,
+        if (prizeAmount != null) 'prize_amount': prizeAmount,
+        if (eventName != null) 'event_name': eventName,
+        if (awardedDate != null) 'awarded_date': awardedDate.toIso8601String(),
+        if (certificateUrl != null) 'certificate_url': certificateUrl,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to create award');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== ERROR HANDLING ====================
 
   String _handleError(DioException error) {
