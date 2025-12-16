@@ -10,6 +10,7 @@ import 'event_detail_page.dart';
 import '../../shared/models/event.dart';
 import '../../shared/utils/theme_colors.dart';
 import '../../core/theme_provider.dart';
+import '../../services/api_service.dart';
 
 class EventsPage extends StatefulWidget {
   const EventsPage({super.key});
@@ -20,13 +21,20 @@ class EventsPage extends StatefulWidget {
 
 class _EventsPageState extends State<EventsPage> {
   final _searchController = TextEditingController();
+  final ApiService _apiService = ApiService();
   String _searchQuery = "";
   DateFilterType _selectedFilter = DateFilterType.upcomingEvents;
   final Set<String> _favoriteEvents = {}; // Track favorite events
   DateTime _selectedCalendarDate = DateTime.now();
+  
+  // Backend integration
+  List<Event> _events = [];
+  bool _isLoading = false;
+  String? _error;
+  bool _isLoggedIn = false; // Track login status
 
-  // Sample events data - made mutable for adding new events
-  final List<Event> _events = [
+  // OLD: Sample events data - now loaded from backend
+  final List<Event> _sampleEvents = [
     Event(
       id: "1",
       title: "Academic Conference 2025",
@@ -143,9 +151,163 @@ class _EventsPageState extends State<EventsPage> {
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
+    _loadEvents(); // Load events directly (no auto-login for now)
+  }
+  
+  /// Check if user is already logged in
+  Future<void> _checkLoginStatus() async {
+    final loggedIn = await _apiService.isLoggedIn();
+    setState(() {
+      _isLoggedIn = loggedIn;
+    });
+  }
+  
+  /// Show login dialog
+  Future<void> _showLoginDialog() async {
+    final emailController = TextEditingController(text: 'admin@college.edu');
+    final passwordController = TextEditingController(text: 'admin123');
+    
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: ThemeColors.surface(context),
+          title: Text(
+            'Admin Login',
+            style: GoogleFonts.urbanist(
+              color: ThemeColors.text(context),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                style: GoogleFonts.urbanist(color: ThemeColors.text(context)),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: GoogleFonts.urbanist(color: ThemeColors.textSecondary(context)),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                style: GoogleFonts.urbanist(color: ThemeColors.text(context)),
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  labelStyle: GoogleFonts.urbanist(color: ThemeColors.textSecondary(context)),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.urbanist(color: ThemeColors.textSecondary(context)),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  await _apiService.login(
+                    email: emailController.text,
+                    password: passwordController.text,
+                  );
+                  Navigator.of(context).pop(true);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Login failed: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Login',
+                style: GoogleFonts.urbanist(
+                  color: ThemeColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    
+    if (result == true) {
+      setState(() {
+        _isLoggedIn = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✓ Logged in as admin')),
+      );
+    }
+  }
+  
+  /// Logout function
+  Future<void> _logout() async {
+    await _apiService.logout();
+    setState(() {
+      _isLoggedIn = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logged out')),
+    );
+  }
+  
+  /// Load events from backend API
+  Future<void> _loadEvents() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    
+    try {
+      final eventsData = await _apiService.getEvents();
+      setState(() {
+        _events = eventsData.map((json) => Event.fromJson(json)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+        // Fallback to sample data if API fails
+        _events = _sampleEvents;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load events from server. Using offline data.'),
+            backgroundColor: Colors.orange,
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: _loadEvents,
+            ),
+          ),
+        );
+      }
+    }
   }
   
   void _navigateToCreateEvent([Event? eventToEdit]) async {
+    // Check if logged in before creating/editing
+    if (!_isLoggedIn) {
+      await _showLoginDialog();
+      if (!_isLoggedIn) return; // User cancelled login
+    }
+    
     final result = await Navigator.of(context).push<Event>(
       MaterialPageRoute(
         builder: (context) => CreateEventPage(event: eventToEdit),
@@ -154,18 +316,58 @@ class _EventsPageState extends State<EventsPage> {
     );
     
     if (result != null) {
-      setState(() {
+      try {
         if (eventToEdit != null) {
-          // Update existing event
-          final index = _events.indexWhere((e) => e.id == eventToEdit.id);
-          if (index != -1) {
-            _events[index] = result;
+          // Update existing event via API
+          await _apiService.updateEvent(
+            id: result.id,
+            title: result.title,
+            description: result.description,
+            startDate: result.startDate,
+            endDate: result.endDate,
+            location: result.location,
+            category: result.category,
+            imageUrl: result.eventImage,
+            maxCapacity: result.availableSeats,
+          );
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Event updated successfully!')),
+            );
           }
         } else {
-          // Add new event
-          _events.add(result);
+          // Create new event via API
+          await _apiService.createEvent(
+            title: result.title,
+            description: result.description,
+            startDate: result.startDate,
+            endDate: result.endDate,
+            location: result.location,
+            category: result.category,
+            imageUrl: result.eventImage,
+            maxCapacity: result.availableSeats,
+          );
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Event created successfully!')),
+            );
+          }
         }
-      });
+        
+        // Reload events from backend
+        await _loadEvents();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -252,7 +454,24 @@ class _EventsPageState extends State<EventsPage> {
 
     return Scaffold(
       backgroundColor: ThemeColors.background(context),
-      body: SafeArea(
+      body: _isLoading
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(color: ThemeColors.primary),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading events...',
+                    style: GoogleFonts.urbanist(
+                      color: ThemeColors.textSecondary(context),
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : SafeArea(
         child: Column(
           children: [
             // Compact Header with Search Bar
@@ -351,6 +570,36 @@ class _EventsPageState extends State<EventsPage> {
                             ? Icons.dark_mode
                             : Icons.light_mode,
                         color: ThemeColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 12),
+                  
+                  // Login/Logout Button
+                  GestureDetector(
+                    onTap: () {
+                      if (_isLoggedIn) {
+                        _logout();
+                      } else {
+                        _showLoginDialog();
+                      }
+                    },
+                    child: Container(
+                      width: 45,
+                      height: 45,
+                      decoration: BoxDecoration(
+                        color: _isLoggedIn ? ThemeColors.primary : ThemeColors.surface(context),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: ThemeColors.cardBorder(context),
+                          width: 1,
+                        ),
+                      ),
+                      child: Icon(
+                        _isLoggedIn ? Icons.admin_panel_settings : Icons.login,
+                        color: _isLoggedIn ? Colors.black : ThemeColors.primary,
                         size: 20,
                       ),
                     ),
@@ -510,8 +759,8 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
   
-  void _deleteEvent(Event event) {
-    showDialog(
+  void _deleteEvent(Event event) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -531,7 +780,7 @@ class _EventsPageState extends State<EventsPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).pop(false),
               child: Text(
                 'Cancel',
                 style: GoogleFonts.urbanist(
@@ -540,18 +789,7 @@ class _EventsPageState extends State<EventsPage> {
               ),
             ),
             TextButton(
-              onPressed: () {
-                setState(() {
-                  _events.removeWhere((e) => e.id == event.id);
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Event deleted successfully'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              },
+              onPressed: () => Navigator.of(context).pop(true),
               child: Text(
                 'Delete',
                 style: GoogleFonts.urbanist(
@@ -564,6 +802,31 @@ class _EventsPageState extends State<EventsPage> {
         );
       },
     );
+    
+    if (confirmed == true) {
+      try {
+        await _apiService.deleteEvent(event.id);
+        await _loadEvents(); // Reload from backend
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Event deleted successfully'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error deleting event: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
