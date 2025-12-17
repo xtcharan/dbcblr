@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../shared/models/event.dart';
 import '../../../shared/utils/theme_colors.dart';
 
@@ -20,7 +22,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
-  final _imageUrlController = TextEditingController();
+  
+  // Image picker and file state
+  final ImagePicker _imagePicker = ImagePicker();
+  File? _eventImage;
+  String? _existingImageUrl;
   
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(hours: 2));
@@ -60,13 +66,41 @@ class _CreateEventPageState extends State<CreateEventPage> {
     _titleController.text = event.title;
     _descriptionController.text = event.description;
     _locationController.text = event.location;
-    _imageUrlController.text = event.eventImage ?? '';
+    // Store existing image URL for editing mode
+    _existingImageUrl = event.eventImage;
     _startDate = event.startDate;
     _endDate = event.endDate;
     _startTime = TimeOfDay.fromDateTime(event.startDate);
     _endTime = TimeOfDay.fromDateTime(event.endDate);
     _selectedCategory = event.category;
     _isHouseEvent = event.isHouseEvent;
+  }
+
+  Future<void> _pickEventImage() async {
+    final XFile? pickedFile = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1200,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+    
+    if (pickedFile != null) {
+      setState(() {
+        _eventImage = File(pickedFile.path);
+        _existingImageUrl = null;
+      });
+    }
+  }
+
+  void _removeEventImage() {
+    setState(() {
+      _eventImage = null;
+      _existingImageUrl = null;
+    });
+  }
+
+  bool _hasValidImage() {
+    return _eventImage != null || _existingImageUrl != null;
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -158,6 +192,17 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
+      // Validate image is uploaded
+      if (!_hasValidImage()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please upload an event image'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       setState(() {
         _isLoading = true;
       });
@@ -179,6 +224,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
         return;
       }
 
+      // TODO: Upload image to server and get URL
+      // For now, use file path or existing URL as placeholder
+      final imageUrl = _existingImageUrl ?? _eventImage?.path;
+
       final event = Event(
         id: widget.event?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text.trim(),
@@ -188,9 +237,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
         location: _locationController.text.trim(),
         category: _selectedCategory,
         isHouseEvent: _isHouseEvent,
-        eventImage: _imageUrlController.text.trim().isEmpty 
-            ? null 
-            : _imageUrlController.text.trim(),
+        eventImage: imageUrl,
       );
 
       // Simulate API call
@@ -260,6 +307,24 @@ class _CreateEventPageState extends State<CreateEventPage> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            // Event Image Section (Mandatory)
+            _buildSectionTitle('📸 Event Image'),
+            const SizedBox(height: 16),
+            
+            // Event Image Upload
+            _buildImageUploadCard(
+              title: 'Event Image',
+              subtitle: 'Used in cards, lists, and detail page',
+              dimensions: 'Recommended: 1200×800px (3:2)',
+              imageFile: _eventImage,
+              existingUrl: _existingImageUrl,
+              onTap: _pickEventImage,
+              onRemove: _removeEventImage,
+              hasError: !_hasValidImage() && _formKey.currentState?.validate() == false,
+            ),
+            
+            const SizedBox(height: 24),
+            
             // Title Field
             _buildSectionTitle('Event Details'),
             const SizedBox(height: 16),
@@ -367,19 +432,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   _isHouseEvent = value;
                 });
               },
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Optional Fields
-            _buildSectionTitle('Optional'),
-            const SizedBox(height: 16),
-            
-            _buildTextFormField(
-              controller: _imageUrlController,
-              label: 'Event Image URL',
-              hint: 'Enter image URL (optional)',
-              icon: Icons.image,
             ),
             
             const SizedBox(height: 40),
@@ -694,12 +746,205 @@ class _CreateEventPageState extends State<CreateEventPage> {
     );
   }
 
+  Widget _buildImageUploadCard({
+    required String title,
+    required String subtitle,
+    required String dimensions,
+    required File? imageFile,
+    required String? existingUrl,
+    required VoidCallback onTap,
+    required VoidCallback onRemove,
+    bool hasError = false,
+  }) {
+    final hasImage = imageFile != null || existingUrl != null;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: ThemeColors.surface(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: hasError ? Colors.red : ThemeColors.cardBorder(context),
+          width: hasError ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.image_outlined,
+                  color: ThemeColors.icon(context),
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.urbanist(
+                          color: ThemeColors.text(context),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.urbanist(
+                          color: ThemeColors.textSecondary(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (hasImage)
+                  IconButton(
+                    onPressed: onRemove,
+                    icon: const Icon(Icons.close, size: 20),
+                    color: Colors.red,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+              ],
+            ),
+          ),
+          
+          // Upload Area or Image Preview
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              height: 160,
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              decoration: BoxDecoration(
+                color: ThemeColors.background(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: ThemeColors.cardBorder(context),
+                  width: 1,
+                  style: hasImage ? BorderStyle.solid : BorderStyle.none,
+                ),
+              ),
+              child: hasImage
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: imageFile != null
+                          ? Image.file(
+                              imageFile,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            )
+                          : Image.network(
+                              existingUrl!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildUploadPlaceholder(dimensions);
+                              },
+                            ),
+                    )
+                  : _buildUploadPlaceholder(dimensions),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUploadPlaceholder(String dimensions) {
+    return Container(
+      decoration: BoxDecoration(
+        color: ThemeColors.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: ThemeColors.primary.withValues(alpha: 0.3),
+          width: 2,
+          style: BorderStyle.solid,
+        ),
+      ),
+      child: CustomPaint(
+        painter: _DashedBorderPainter(
+          color: ThemeColors.primary.withValues(alpha: 0.3),
+          strokeWidth: 2,
+          gap: 6,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: ThemeColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Icon(
+                  Icons.cloud_upload_outlined,
+                  color: ThemeColors.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Tap to upload image',
+                style: GoogleFonts.urbanist(
+                  color: ThemeColors.primary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                dimensions,
+                style: GoogleFonts.urbanist(
+                  color: ThemeColors.textSecondary(context),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
-    _imageUrlController.dispose();
     super.dispose();
   }
+}
+
+// Custom painter for dashed border effect
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double gap;
+
+  _DashedBorderPainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.gap,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Dashed border is created via the container's border
+    // This painter is a placeholder for more complex patterns if needed
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

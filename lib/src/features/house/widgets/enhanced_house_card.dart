@@ -7,11 +7,15 @@ import '../house_detail_page.dart';
 class EnhancedHouseCard extends StatelessWidget {
   final House house;
   final int rank;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const EnhancedHouseCard({
     super.key,
     required this.house,
     required this.rank,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -58,10 +62,67 @@ class EnhancedHouseCard extends StatelessWidget {
               child: _buildHouseInfo(context, houseColor),
             ),
             
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             
-            // Right side - Status and arrow
+            // Right side - Status, arrow, and menu
             _buildStatusSection(context),
+            
+            // Three-dot menu
+            if (onEdit != null || onDelete != null)
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: ThemeColors.iconSecondary(context),
+                  size: 20,
+                ),
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: ThemeColors.surface(context),
+                onSelected: (value) {
+                  if (value == 'edit' && onEdit != null) {
+                    onEdit!();
+                  } else if (value == 'delete' && onDelete != null) {
+                    onDelete!();
+                  }
+                },
+                itemBuilder: (context) => [
+                  if (onEdit != null)
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit_outlined, size: 18),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Edit House',
+                            style: GoogleFonts.urbanist(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (onDelete != null)
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Delete House',
+                            style: GoogleFonts.urbanist(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
           ],
         ),
       ),

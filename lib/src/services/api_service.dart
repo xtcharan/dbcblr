@@ -846,6 +846,380 @@ class ApiService {
     }
   }
 
+  // ==================== HOUSES ENDPOINTS ====================
+
+  /// Get all houses (public)
+  Future<List<Map<String, dynamic>>> getHouses() async {
+    try {
+      final response = await _dio.get('/houses');
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> houses = response.data['data'] ?? [];
+        return houses.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch houses');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Get single house by ID with roles (public)
+  Future<Map<String, dynamic>> getHouse(String id) async {
+    try {
+      final response = await _dio.get('/houses/$id');
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch house');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Create house (admin only)
+  Future<Map<String, dynamic>> createHouse({
+    required String name,
+    String? color,
+    String? description,
+    String? logoUrl,
+  }) async {
+    try {
+      final response = await _dio.post('/admin/houses', data: {
+        'name': name,
+        if (color != null) 'color': color,
+        if (description != null) 'description': description,
+        if (logoUrl != null) 'logo_url': logoUrl,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to create house');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Update house (admin only)
+  Future<Map<String, dynamic>> updateHouse({
+    required String id,
+    String? name,
+    String? color,
+    String? description,
+    String? logoUrl,
+    int? points,
+  }) async {
+    try {
+      final response = await _dio.put('/admin/houses/$id', data: {
+        if (name != null) 'name': name,
+        if (color != null) 'color': color,
+        if (description != null) 'description': description,
+        if (logoUrl != null) 'logo_url': logoUrl,
+        if (points != null) 'points': points,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to update house');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Delete house (admin only)
+  Future<void> deleteHouse(String id) async {
+    try {
+      final response = await _dio.delete('/admin/houses/$id');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to delete house');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Add points to a house (admin only)
+  /// Fetches current points and adds the new points
+  Future<Map<String, dynamic>> addHousePoints({
+    required String houseId,
+    required int points,
+    String? reason,
+  }) async {
+    try {
+      // First get current house data
+      final houseData = await getHouse(houseId);
+      final currentPoints = houseData['points'] ?? 0;
+      final newPoints = currentPoints + points;
+      
+      // Update with new points
+      final response = await _dio.put('/admin/houses/$houseId', data: {
+        'points': newPoints,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to add points');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== HOUSE ROLES ENDPOINTS ====================
+
+  /// Add role to house (authenticated)
+  Future<Map<String, dynamic>> addHouseRole({
+    required String houseId,
+    required String memberName,
+    required String roleTitle,
+    int? displayOrder,
+  }) async {
+    try {
+      final response = await _dio.post('/houses/$houseId/roles', data: {
+        'member_name': memberName,
+        'role_title': roleTitle,
+        if (displayOrder != null) 'display_order': displayOrder,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to add role');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Remove role from house (authenticated)
+  Future<void> removeHouseRole({
+    required String houseId,
+    required String roleId,
+  }) async {
+    try {
+      final response = await _dio.delete('/houses/$houseId/roles/$roleId');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to remove role');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== HOUSE ANNOUNCEMENTS ENDPOINTS ====================
+
+  /// Get house announcements (public)
+  Future<List<Map<String, dynamic>>> getHouseAnnouncements(String houseId) async {
+    try {
+      final response = await _dio.get('/houses/$houseId/announcements');
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> announcements = response.data['data'] ?? [];
+        return announcements.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch announcements');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Create house announcement (admin only)
+  Future<Map<String, dynamic>> createHouseAnnouncement({
+    required String houseId,
+    required String title,
+    required String content,
+  }) async {
+    try {
+      final response = await _dio.post('/admin/houses/$houseId/announcements', data: {
+        'title': title,
+        'content': content,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to create announcement');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Like/unlike announcement (authenticated)
+  Future<bool> toggleAnnouncementLike(String announcementId) async {
+    try {
+      final response = await _dio.post('/announcements/$announcementId/like');
+      
+      if (response.data['success'] == true) {
+        return response.data['data']['liked'] ?? false;
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to toggle like');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Get announcement comments (public)
+  Future<List<Map<String, dynamic>>> getAnnouncementComments(String announcementId) async {
+    try {
+      final response = await _dio.get('/announcements/$announcementId/comments');
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> comments = response.data['data'] ?? [];
+        return comments.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch comments');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Add comment to announcement (authenticated)
+  Future<Map<String, dynamic>> addAnnouncementComment({
+    required String announcementId,
+    required String content,
+  }) async {
+    try {
+      final response = await _dio.post('/announcements/$announcementId/comments', data: {
+        'content': content,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to add comment');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== HOUSE EVENTS ENDPOINTS ====================
+
+  /// Get house events (public)
+  Future<List<Map<String, dynamic>>> getHouseEvents(String houseId) async {
+    try {
+      final response = await _dio.get('/houses/$houseId/events');
+      
+      if (response.data['success'] == true) {
+        final List<dynamic> events = response.data['data'] ?? [];
+        return events.cast<Map<String, dynamic>>();
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to fetch house events');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Create house event (admin only)
+  Future<Map<String, dynamic>> createHouseEvent({
+    required String houseId,
+    required String title,
+    String? description,
+    required DateTime eventDate,
+    String? startTime,
+    String? endTime,
+    String? venue,
+    int? maxParticipants,
+    DateTime? registrationDeadline,
+  }) async {
+    try {
+      final dateStr = '${eventDate.year}-${eventDate.month.toString().padLeft(2, '0')}-${eventDate.day.toString().padLeft(2, '0')}';
+      String? deadlineStr;
+      if (registrationDeadline != null) {
+        deadlineStr = '${registrationDeadline.year}-${registrationDeadline.month.toString().padLeft(2, '0')}-${registrationDeadline.day.toString().padLeft(2, '0')}';
+      }
+      
+      final response = await _dio.post('/admin/houses/$houseId/events', data: {
+        'title': title,
+        if (description != null) 'description': description,
+        'event_date': dateStr,
+        if (startTime != null) 'start_time': startTime,
+        if (endTime != null) 'end_time': endTime,
+        if (venue != null) 'venue': venue,
+        if (maxParticipants != null) 'max_participants': maxParticipants,
+        if (deadlineStr != null) 'registration_deadline': deadlineStr,
+      });
+      
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to create house event');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Enroll in house event (authenticated)
+  Future<void> enrollInHouseEvent(String eventId) async {
+    try {
+      final response = await _dio.post('/house-events/$eventId/enroll');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to enroll in event');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Unenroll from house event (authenticated)
+  Future<void> unenrollFromHouseEvent(String eventId) async {
+    try {
+      final response = await _dio.delete('/house-events/$eventId/enroll');
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to unenroll from event');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ==================== FILE UPLOAD ENDPOINTS ====================
+
+  /// Upload an image file (admin only)
+  Future<String> uploadImage(dynamic file) async {
+    try {
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+      });
+
+      final response = await _dio.post(
+        '/admin/upload',
+        data: formData,
+        options: Options(
+          headers: {'Content-Type': 'multipart/form-data'},
+        ),
+      );
+      
+      if (response.data['success'] == true) {
+        return response.data['data']['url'] ?? '';
+      }
+      
+      throw Exception(response.data['error'] ?? 'Failed to upload image');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== ERROR HANDLING ====================
 
   String _handleError(DioException error) {

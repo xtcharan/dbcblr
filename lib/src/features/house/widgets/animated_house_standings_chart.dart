@@ -81,6 +81,49 @@ class _AnimatedHouseStandingsChartState extends State<AnimatedHouseStandingsChar
 
   @override
   Widget build(BuildContext context) {
+    // Handle empty list
+    if (widget.houses.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: ThemeColors.cardBackground(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: ThemeColors.cardBorder(context),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.home_outlined,
+              size: 64,
+              color: ThemeColors.textSecondary(context),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No Houses Yet',
+              style: GoogleFonts.urbanist(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: ThemeColors.text(context),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tap the + button to create the first house',
+              style: GoogleFonts.urbanist(
+                fontSize: 14,
+                color: ThemeColors.textSecondary(context),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
     // Sort houses by points in descending order
     final sortedHouses = List<House>.from(widget.houses)
       ..sort((a, b) => b.points.compareTo(a.points));
