@@ -122,10 +122,10 @@ class _DBCOnboardingPageState extends State<DBCOnboardingPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15),
                     child: Image.asset(
-                      'lib/src/features/auth/logo.png',
+                      'assets/images/logo.png',
                       width: 60,
                       height: 60,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),

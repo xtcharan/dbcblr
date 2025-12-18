@@ -28,10 +28,10 @@ class SignupChoicePage extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(25),
                 child: Image.asset(
-                  'lib/src/features/auth/logo.png',
+                  'assets/images/logo.png',
                   width: 100,
                   height: 100,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                 ),
               ),
               

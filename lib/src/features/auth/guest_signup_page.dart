@@ -95,10 +95,10 @@ class _GuestSignupPageState extends State<GuestSignupPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(18),
                     child: Image.asset(
-                      'lib/src/features/auth/logo.png',
+                      'assets/images/logo.png',
                       width: 70,
                       height: 70,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),

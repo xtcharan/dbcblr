@@ -30,10 +30,10 @@ class WelcomePage extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(28),
                   child: Image.asset(
-                    'lib/src/features/auth/logo.png',
+                    'assets/images/logo.png',
                     width: 140,
                     height: 140,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                   ),
                 ),
                 
