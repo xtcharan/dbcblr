@@ -7,10 +7,15 @@ class Event {
   final String location;
   final String category;
   final bool isHouseEvent;
-  final String? eventImage; // Renamed from imageUrl to eventImage
+  final String? eventImage;
   final double? price;
   final int? availableSeats;
   final int? participantCount;
+  
+  // Payment fields
+  final bool isPaidEvent;
+  final double? eventAmount;
+  final String? currency;
 
   Event({
     required this.id,
@@ -21,10 +26,13 @@ class Event {
     required this.location,
     required this.category,
     required this.isHouseEvent,
-    this.eventImage, // Renamed from imageUrl to eventImage
+    this.eventImage,
     this.price,
     this.availableSeats,
     this.participantCount,
+    this.isPaidEvent = false,
+    this.eventAmount,
+    this.currency,
   });
 
   // Create Event from backend API JSON response
@@ -37,11 +45,15 @@ class Event {
       endDate: DateTime.parse(json['end_date'] as String),
       location: json['location'] as String? ?? '',
       category: json['category'] as String? ?? 'General',
-      eventImage: json['image_url'] as String?,
-      isHouseEvent: false, // Backend doesn't have this field yet
-      price: (json['price'] as num?)?.toDouble(),
-      availableSeats: json['max_capacity'] as int?,
-      participantCount: json['participant_count'] as int?,
+      eventImage: json['banner_url'] as String? ?? json['image_url'] as String?,
+      isHouseEvent: false,
+      price: (json['event_amount'] as num?)?.toDouble(),
+      availableSeats: json['max_participants'] as int?,
+      participantCount: json['current_participants'] as int?,
+      // Payment fields
+      isPaidEvent: json['is_paid_event'] as bool? ?? false,
+      eventAmount: (json['event_amount'] as num?)?.toDouble(),
+      currency: json['currency'] as String? ?? 'INR',
     );
   }
 
@@ -54,8 +66,12 @@ class Event {
       'end_date': endDate.toIso8601String(),
       'location': location,
       'category': category,
-      'image_url': eventImage,
+      'banner_url': eventImage,
       'max_capacity': availableSeats,
+      // Payment fields
+      'is_paid_event': isPaidEvent,
+      'event_amount': eventAmount,
+      'currency': currency ?? 'INR',
     };
   }
 
@@ -72,4 +88,12 @@ class Event {
         startDate.month == date.month &&
         startDate.day == date.day;
   }
+  
+  // Helper to format price display
+  String get formattedPrice {
+    if (!isPaidEvent || eventAmount == null) return 'Free';
+    final currencySymbol = currency == 'INR' ? '₹' : currency ?? '';
+    return '$currencySymbol${eventAmount!.toStringAsFixed(0)}';
+  }
 }
+

@@ -36,6 +36,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
   String _selectedCategory = 'Academic';
   bool _isHouseEvent = false;
   bool _isLoading = false;
+  
+  // Payment state
+  bool _isPaidEvent = false;
+  final _eventAmountController = TextEditingController();
 
   final List<String> _categories = [
     'Academic',
@@ -74,6 +78,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
     _endTime = TimeOfDay.fromDateTime(event.endDate);
     _selectedCategory = event.category;
     _isHouseEvent = event.isHouseEvent;
+    // Payment fields
+    _isPaidEvent = event.isPaidEvent;
+    if (event.eventAmount != null) {
+      _eventAmountController.text = event.eventAmount!.toStringAsFixed(0);
+    }
   }
 
   Future<void> _pickEventImage() async {
@@ -227,6 +236,12 @@ class _CreateEventPageState extends State<CreateEventPage> {
       // TODO: Upload image to server and get URL
       // For now, use file path or existing URL as placeholder
       final imageUrl = _existingImageUrl ?? _eventImage?.path;
+      
+      // Parse event amount if paid event
+      double? eventAmount;
+      if (_isPaidEvent && _eventAmountController.text.isNotEmpty) {
+        eventAmount = double.tryParse(_eventAmountController.text);
+      }
 
       final event = Event(
         id: widget.event?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -238,6 +253,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
         category: _selectedCategory,
         isHouseEvent: _isHouseEvent,
         eventImage: imageUrl,
+        // Payment fields
+        isPaidEvent: _isPaidEvent,
+        eventAmount: eventAmount,
+        currency: 'INR',
       );
 
       // Simulate API call
@@ -434,7 +453,46 @@ class _CreateEventPageState extends State<CreateEventPage> {
               },
             ),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 16),
+            
+            // Paid Event Toggle
+            _buildSwitchCard(
+              title: 'Paid Event',
+              subtitle: 'Require payment for enrollment',
+              value: _isPaidEvent,
+              onChanged: (value) {
+                setState(() {
+                  _isPaidEvent = value;
+                  if (!value) {
+                    _eventAmountController.clear();
+                  }
+                });
+              },
+            ),
+            
+            // Event Amount Field (shown when paid event is enabled)
+            if (_isPaidEvent) ...[
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _eventAmountController,
+                label: 'Event Amount (₹)',
+                hint: 'Enter registration fee',
+                icon: Icons.currency_rupee,
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (_isPaidEvent && (value?.isEmpty ?? true)) {
+                    return 'Please enter event amount';
+                  }
+                  if (_isPaidEvent && value != null) {
+                    final amount = double.tryParse(value);
+                    if (amount == null || amount <= 0) {
+                      return 'Please enter a valid amount';
+                    }
+                  }
+                  return null;
+                },
+              ),
+            ],
             
             // Submit Button
             SizedBox(
@@ -494,6 +552,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
     required IconData icon,
     String? Function(String?)? validator,
     int maxLines = 1,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -508,6 +567,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
         controller: controller,
         validator: validator,
         maxLines: maxLines,
+        keyboardType: keyboardType,
         style: GoogleFonts.urbanist(
           color: ThemeColors.text(context),
           fontSize: 16,
