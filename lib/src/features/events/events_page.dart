@@ -329,6 +329,10 @@ class _EventsPageState extends State<EventsPage> {
             category: result.category,
             imageUrl: result.eventImage,
             maxCapacity: result.availableSeats,
+            // Payment fields
+            isPaidEvent: result.isPaidEvent,
+            eventAmount: result.eventAmount,
+            currency: result.currency,
           );
           
           if (mounted) {
@@ -347,6 +351,10 @@ class _EventsPageState extends State<EventsPage> {
             category: result.category,
             imageUrl: result.eventImage,
             maxCapacity: result.availableSeats,
+            // Payment fields
+            isPaidEvent: result.isPaidEvent,
+            eventAmount: result.eventAmount,
+            currency: result.currency,
           );
           
           if (mounted) {

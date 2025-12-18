@@ -231,6 +231,10 @@ class ApiService {
     String? location,
     String? category,
     int? maxCapacity,
+    // Payment fields
+    bool isPaidEvent = false,
+    double? eventAmount,
+    String? currency,
   }) async {
     try {
       final response = await _dio.post('/admin/events', data: {
@@ -242,6 +246,10 @@ class ApiService {
         if (location != null) 'location': location,
         if (category != null) 'category': category,
         if (maxCapacity != null) 'max_capacity': maxCapacity,
+        // Payment fields
+        'is_paid_event': isPaidEvent,
+        if (eventAmount != null) 'event_amount': eventAmount,
+        if (currency != null) 'currency': currency,
       });
       
       if (response.data['success'] == true) {
@@ -265,6 +273,10 @@ class ApiService {
     String? location,
     String? category,
     int? maxCapacity,
+    // Payment fields
+    bool isPaidEvent = false,
+    double? eventAmount,
+    String? currency,
   }) async {
     try {
       final response = await _dio.put('/admin/events/$id', data: {
@@ -276,6 +288,10 @@ class ApiService {
         if (location != null) 'location': location,
         if (category != null) 'category': category,
         if (maxCapacity != null) 'max_capacity': maxCapacity,
+        // Payment fields
+        'is_paid_event': isPaidEvent,
+        if (eventAmount != null) 'event_amount': eventAmount,
+        if (currency != null) 'currency': currency,
       });
       
       if (response.data['success'] == true) {
