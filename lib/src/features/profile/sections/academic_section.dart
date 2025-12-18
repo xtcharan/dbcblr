@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../shared/models/user.dart';
 
 class AcademicSection extends StatelessWidget {
   const AcademicSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = User.fake();
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -25,9 +28,47 @@ class AcademicSection extends StatelessWidget {
               ),
             ),
           ),
-          _row(Icons.badge, 'Student ID', 'U19PD23S0007', context),
-          _row(Icons.school, 'Academic Year', 'Third Year', context),
-          _row(Icons.menu_book, 'Course', 'BCA - Computer Science', context),
+          // Student ID
+          if (user.studentId != null)
+            _row(Icons.badge, 'Student ID', user.studentId!, context),
+          
+          // For DBC students
+          if (user.userType == UserType.student) ...[
+            if (user.year != null)
+              _row(Icons.school, 'Year', user.year!, context),
+            if (user.semester != null)
+              _row(Icons.calendar_today, 'Semester', 'Sem ${user.semester}', context),
+            if (user.course != null)
+              _row(Icons.menu_book, 'Course', user.course!, context),
+          ],
+          
+          // For guest users
+          if (user.userType == UserType.guest) ...[
+            if (user.institutionName != null)
+              _row(Icons.account_balance, 'Institution', user.institutionName!, context),
+            if (user.educationLevel == EducationLevel.school) ...[
+              if (user.className != null)
+                _row(Icons.class_, 'Class', user.className!, context),
+              if (user.section != null)
+                _row(Icons.group, 'Section', user.section!, context),
+            ],
+            if (user.educationLevel == EducationLevel.pu) ...[
+              if (user.stream != null)
+                _row(Icons.science, 'Stream', user.stream!, context),
+              if (user.course != null)
+                _row(Icons.menu_book, 'Course', user.course!, context),
+              if (user.year != null)
+                _row(Icons.school, 'Year', user.year!, context),
+            ],
+            if (user.educationLevel == EducationLevel.college) ...[
+              if (user.course != null)
+                _row(Icons.menu_book, 'Course', user.course!, context),
+              if (user.year != null)
+                _row(Icons.school, 'Year', user.year!, context),
+              if (user.semester != null)
+                _row(Icons.calendar_today, 'Semester', 'Sem ${user.semester}', context),
+            ],
+          ],
         ],
       ),
     );

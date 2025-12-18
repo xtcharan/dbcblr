@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../shared/utils/toast.dart';
-import '../../../shared/models/user.dart'; // fake user for now
+import '../../../shared/models/user.dart';
 
 class PersonalSection extends StatelessWidget {
   const PersonalSection({super.key});
@@ -32,16 +32,21 @@ class PersonalSection extends StatelessWidget {
           _row(
             Icons.person,
             'Full Name',
-            '${user.firstName} ${user.lastName}',
+            user.fullName,
             context,
           ),
-          _row(Icons.email, 'Email Address', user.email, context),
+          _row(
+            Icons.email,
+            'Email Address',
+            user.email,
+            context,
+          ),
           _row(
             Icons.phone,
             'Phone Number',
-            '+91 98765 43210',
+            user.phone ?? 'Not provided',
             context,
-          ), // static for now
+          ),
         ],
       ),
     );

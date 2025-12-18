@@ -45,70 +45,15 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Profile Picture
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const ProfilePage(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 45,
-                      height: 45,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-              color: ThemeColors.primary,
-                          width: 2,
-                        ),
-                      ),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(currentUser.avatarUrl),
-                      ),
-                    ),
-                  ),
-                  
-                  // Theme Toggle Button
-                  GestureDetector(
-                    onTap: () {
-                      context.read<ThemeProvider>().toggleTheme();
-                    },
-                    child: Container(
-                      width: 45,
-                      height: 45,
-                      decoration: BoxDecoration(
-                        color: ThemeColors.surface(context),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: ThemeColors.cardBorder(context),
-                          width: 1,
-                        ),
-                      ),
-                      child: Icon(
-                        Theme.of(context).brightness == Brightness.light
-                            ? Icons.dark_mode
-                            : Icons.light_mode,
-                        color: ThemeColors.primary,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  
                   // Welcome Message
                   Expanded(
-                    child: Center(
-                      child: Text(
-                        'Welcome back ${currentUser.firstName}',
-                        style: GoogleFonts.urbanist(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: ThemeColors.text(context),
-                        ),
+                    child: Text(
+                      'Welcome back ${currentUser.firstName}',
+                      style: GoogleFonts.urbanist(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: ThemeColors.text(context),
                       ),
                     ),
                   ),

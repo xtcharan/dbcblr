@@ -1,8 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/models/user.dart'; // for avatar + name
 import '../../shared/utils/toast.dart'; // for toast notifications
-import '../../shared/widgets/network_avatar.dart'; // for network avatar
 import '../../core/theme_provider.dart'; // for theme switching
 import '../profile/profile_page.dart'; // for direct profile navigation
 
@@ -51,9 +51,15 @@ class AppDrawer extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const ProfilePage()),
                     );
                   },
-                  child: NetworkAvatar(
-                    imageUrl: user.avatarUrl,
+                  child: CircleAvatar(
                     radius: 24,
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    backgroundImage: user.avatarPath != null
+                        ? FileImage(File(user.avatarPath!))
+                        : null,
+                    child: user.avatarPath == null
+                        ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary)
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 12),

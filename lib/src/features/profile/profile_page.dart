@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
+          import 'package:flutter/material.dart';
 import 'package:swo/src/features/profile/sections/academic_section.dart';
-import 'package:swo/src/features/profile/sections/achievements_section.dart';
-import 'package:swo/src/features/profile/sections/house_stats_section.dart';
 import 'package:swo/src/features/profile/sections/my_events_section.dart';
-import 'package:swo/src/features/profile/sections/notif_settings_section.dart';
 import 'package:swo/src/features/profile/sections/personal_section.dart';
 import 'package:swo/src/features/profile/sections/security_section.dart';
 import 'sections/header_section.dart';
@@ -23,14 +20,12 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: const Text('Profile'),
         elevation: 0,
-        // Let Flutter automatically show back button when navigated from other pages
-        // The hamburger menu will only show when accessed through the main dashboard
       ),
       body: RefreshIndicator(
         onRefresh: () async {
           // TODO: call backend reload later
           final messenger = ScaffoldMessenger.of(context);
-          await Future.delayed(const Duration(seconds: 1)); // fake delay
+          await Future.delayed(const Duration(seconds: 1));
           if (!mounted) return;
           messenger.showSnackBar(
             const SnackBar(content: Text('Profile refreshed')),
@@ -41,14 +36,9 @@ class _ProfilePageState extends State<ProfilePage> {
             ProfileHeaderSection(),
             PersonalSection(),
             AcademicSection(),
-            AchievementsSection(), // Add the achievements section
-            HouseStatsSection(),
             MyEventsSection(),
-            NotifSettingsSection(),
             SecuritySection(),
-
-            // green banner
-            // rest of sections will be added below this
+            SizedBox(height: 32), // Bottom padding
           ],
         ),
       ),

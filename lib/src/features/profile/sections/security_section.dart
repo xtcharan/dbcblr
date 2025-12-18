@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../shared/utils/toast.dart';
+import '../../../services/api_service.dart';
 
 class SecuritySection extends StatelessWidget {
   const SecuritySection({super.key});
@@ -16,7 +17,7 @@ class SecuritySection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 12),
             child: Text(
-              'Security & Privacy',
+              'Security',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -32,20 +33,8 @@ class SecuritySection extends StatelessWidget {
             () => _snack(context, 'Change password screen'),
             context,
           ),
-          _navRow(
-            Icons.shield_outlined,
-            'Privacy Settings',
-            () => _snack(context, 'Privacy screen'),
-            context,
-          ),
-          _navRow(
-            Icons.devices_outlined,
-            'Session Management',
-            () => _snack(context, 'Active sessions'),
-            context,
-          ),
           const Divider(height: 24),
-          // red logout button
+          // Logout button
           SizedBox(
             width: double.infinity,
             child: FilledButton.tonal(
@@ -118,10 +107,22 @@ class SecuritySection extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              showToast('Logged out (fake)', context: context);
-              // TODO: clear tokens & push to login
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              
+              // Call API service logout
+              await ApiService().logout();
+              
+              // Show confirmation
+              showToast('Logged out successfully', context: context);
+              
+              // Navigate to login screen and clear navigation stack
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/login',
+                  (route) => false,
+                );
+              }
             },
             child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),

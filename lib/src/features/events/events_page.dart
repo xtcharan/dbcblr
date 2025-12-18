@@ -585,36 +585,6 @@ class _EventsPageState extends State<EventsPage> {
                   
                   const SizedBox(width: 12),
                   
-                  // Login/Logout Button
-                  GestureDetector(
-                    onTap: () {
-                      if (_isLoggedIn) {
-                        _logout();
-                      } else {
-                        _showLoginDialog();
-                      }
-                    },
-                    child: Container(
-                      width: 45,
-                      height: 45,
-                      decoration: BoxDecoration(
-                        color: _isLoggedIn ? ThemeColors.primary : ThemeColors.surface(context),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: ThemeColors.cardBorder(context),
-                          width: 1,
-                        ),
-                      ),
-                      child: Icon(
-                        _isLoggedIn ? Icons.admin_panel_settings : Icons.login,
-                        color: _isLoggedIn ? Colors.black : ThemeColors.primary,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(width: 12),
-                  
                   // Filter button
                   GestureDetector(
                     onTap: () {

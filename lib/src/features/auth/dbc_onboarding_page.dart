@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import '../../shared/utils/theme_colors.dart';
 
@@ -22,9 +25,12 @@ class _DBCOnboardingPageState extends State<DBCOnboardingPage> {
   String? _selectedDepartment;
   String? _selectedYear;
   String? _selectedSemester;
+  DateTime? _selectedDob;
+  String? _avatarPath;
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> _departments = [
     'BCA', 'B.COM', 'BA', 'BBM', 'BSW', 'BBA', 'B.Sc'
@@ -196,6 +202,108 @@ class _DBCOnboardingPageState extends State<DBCOnboardingPage> {
                   controller: _firstNameController,
                   hint: 'Enter first name',
                   validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Last Name
+                _buildInputField(
+                  label: 'Last Name *',
+                  controller: _lastNameController,
+                  hint: 'Enter last name',
+                  validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Date of Birth
+                _buildLabel('Date of Birth *'),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: ThemeColors.inputBackground(context),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.calendar_today, color: ThemeColors.icon(context)),
+                        const SizedBox(width: 12),
+                        Text(
+                          _selectedDob != null
+                              ? DateFormat('dd MMM yyyy').format(_selectedDob!)
+                              : 'Select your date of birth',
+                          style: GoogleFonts.urbanist(
+                            color: _selectedDob != null
+                                ? ThemeColors.text(context)
+                                : ThemeColors.textSecondary(context),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Profile Photo Upload
+                _buildLabel('Profile Photo *'),
+                const SizedBox(height: 8),
+                Center(
+                  child: GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: ThemeColors.inputBackground(context),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: ThemeColors.primary.withOpacity(0.5),
+                          width: 2,
+                        ),
+                        image: _avatarPath != null
+                            ? DecorationImage(
+                                image: FileImage(File(_avatarPath!)),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: _avatarPath == null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.camera_alt,
+                                  size: 32,
+                                  color: ThemeColors.icon(context),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Upload Photo',
+                                  style: GoogleFonts.urbanist(
+                                    fontSize: 12,
+                                    color: ThemeColors.textSecondary(context),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: Text(
+                    'Use a real photo, no drawings or caricatures',
+                    style: GoogleFonts.urbanist(
+                      fontSize: 12,
+                      color: ThemeColors.textSecondary(context),
+                    ),
+                  ),
                 ),
                 
                 const SizedBox(height: 16),
@@ -455,6 +563,47 @@ class _DBCOnboardingPageState extends State<DBCOnboardingPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDob ?? DateTime(2000, 1, 1),
+      firstDate: DateTime(1980),
+      lastDate: DateTime.now(),
+      helpText: 'Select your date of birth',
+    );
+    if (picked != null && picked != _selectedDob) {
+      setState(() {
+        _selectedDob = picked;
+      });
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _avatarPath = image.path;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to pick image'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildLabel(String text) {
