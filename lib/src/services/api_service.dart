@@ -130,6 +130,64 @@ class ApiService {
     }
   }
 
+  /// Update user profile
+  Future<void> updateProfile({
+    String? fullName,
+    String? department,
+    int? year,
+    int? semester,
+    String? phone,
+    String? username,
+    List<String>? interests,
+    String? avatarUrl,
+  }) async {
+    try {
+      final response = await _dio.put('/profile', data: {
+        if (fullName != null) 'full_name': fullName,
+        if (department != null) 'department': department,
+        if (year != null) 'year': year,
+        if (semester != null) 'semester': semester,
+        if (phone != null) 'phone': phone,
+        if (username != null) 'username': username,
+        if (interests != null) 'interests': interests,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
+      });
+      
+      if (response.data['success'] != true) {
+        throw Exception(response.data['error'] ?? 'Failed to update profile');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Google OAuth login
+  Future<Map<String, dynamic>> googleAuth({
+    required String idToken,
+    required String email,
+    required String name,
+  }) async {
+    try {
+      final response = await _dio.post('/auth/google', data: {
+        'id_token': idToken,
+        'email': email,
+        'name': name,
+      });
+      
+      if (response.data['success'] == true) {
+        // Save tokens
+        final data = response.data['data'];
+        await _storage.write(key: 'access_token', value: data['access_token']);
+        await _storage.write(key: 'refresh_token', value: data['refresh_token']);
+        return data;
+      }
+      
+      throw Exception(response.data['error'] ?? 'Google auth failed');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== EVENTS ENDPOINTS ====================
 
   /// Get all events (public)
